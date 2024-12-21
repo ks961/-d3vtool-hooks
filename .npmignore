@@ -9,6 +9,7 @@ tsconfig.app.json
 tsconfig.node.json
 index.html
 package-lock.json
+vite.config.ts
 node_modules
 
 # Ignore source code (optional, depending on your decision to publish source code)
