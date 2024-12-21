@@ -7,8 +7,7 @@
   "description": "Collection of custom React hooks to simplify tasks in your React projects.",
   "scripts": {
     "dev": "vite",
-    "build": "npx tsc -p tsconfig.node.json",
-    "minify": "esbuild ./dist/**/*.js --minify --outdir=./dist --allow-overwrite"
+    "build": "tsc -p tsconfig.node.json && esbuild ./dist/**/*.js --minify --outdir=./dist --allow-overwrite"
   },
   "keywords": [
     "react",
