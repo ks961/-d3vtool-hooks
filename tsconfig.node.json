@@ -1,0 +1,19 @@
+{
+    "compilerOptions": {
+        "target": "ES5",                 // Ensure compatibility with older browsers (e.g., IE11)
+        "module": "ESNext",              // ESNext modules; use 'ES6' if you need compatibility with non-ESNext systems
+        "moduleResolution": "Node",      // Resolves modules in the Node.js style (most widely supported)
+        "skipLibCheck": true,            // Skip type checking of declaration files (improves build speed)
+        "noEmit": false,                 // Emit output files
+        "declaration": true,             // Generate .d.ts declaration files
+        "declarationDir": "./dist",      // Output declaration files in the dist folder
+        "outDir": "./dist",              // Output all files to the dist folder
+        "strict": true,                  // Enable strict type checking options
+        "esModuleInterop": true,         // Allow default imports from modules with no default export
+        "forceConsistentCasingInFileNames": true, // Ensure that file names are case-sensitive
+        "lib": ["dom", "es5", "es2015"], // Ensure compatibility with both DOM and ES5 (for older browsers)
+        "downlevelIteration": true       // Ensure that iteration in ES5 supports generators and async iterators
+    },
+    "include": ["src/hooks/**/*"],
+    "exclude": ["node_modules", "dist"]
+}  
