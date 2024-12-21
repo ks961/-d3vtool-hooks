@@ -22,7 +22,7 @@ yarn add @d3vtool/hooks
 
 ### `useMState`
 
-`useMState` is a custom hook for managing state in your React components. It can be used with a direct initial state value or with an initializer function for more complex state setups. It also supports updating state based on the most recent snapshot of the state in a mutable way.
+`useMState` is a custom mutable version of `useState` hook for managing state in your React components. It can be used with a direct initial state value or with an initializer function for more complex state setups. It also supports updating state based on the most recent snapshot of the state in a mutable way.
 
 #### API
 
