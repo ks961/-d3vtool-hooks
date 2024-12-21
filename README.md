@@ -27,7 +27,7 @@ yarn add @d3vtool/hooks
 #### API
 
 ```ts
-const [state, setState] = useMState<T | (() => T)>(initialState);
+const [state, setState] = useMState(initialState);
 ```
 
 - `initialState`: Can be a direct initial value or a function that returns the initial value.
