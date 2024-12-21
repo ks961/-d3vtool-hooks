@@ -91,6 +91,43 @@ const ToggleComponent: React.FC = () => {
 export default ToggleComponent;
 ```
 
+### `useClickOutside`
+
+`useClickOutside` is a custom hook that triggers a callback when a click event occurs outside the referenced element. It allows you to detect clicks outside a specific component and can be useful for scenarios like closing modals or dropdowns.
+
+#### API
+
+```ts
+const ref = useClickOutside(action: VoidFunction);
+```
+
+- `action`: The function to be triggered when a click occurs outside the referenced element.
+
+#### Example
+
+```tsx
+import { useClickOutside } from "@d3vtool/hooks";
+
+const DropdownComponent: React.FC = () => {
+
+    const dropdownRef = useClickOutside(() => {
+        console.log("Clicked outside the dropdown");
+    });
+
+    return (
+        <div>
+            <div ref={dropdownRef} style={{ padding: "20px", backgroundColor: "lightblue" }}>
+                <p>Dropdown content</p>
+                <button>Click me</button>
+            </div>
+            <p>Click outside the box to trigger the action.</p>
+        </div>
+    );
+};
+
+export default DropdownComponent;
+```
+
 ### License
 
 This package is open-source and licensed under the [MIT License](LICENSE).
