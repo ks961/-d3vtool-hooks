@@ -50,6 +50,12 @@ const [user, setUser] = useMState(() => ({ name: 'John', age: 30 }));
 setUser(mostRecentSnapshot => {
   mostRecentSnapshot.age += 1;
 });
+
+// It also accept 2nd param for deep cloning the `mostRecentSnapshot` of state.
+// By default it is set to false.
+setUser(mostRecentSnapshot => {
+  mostRecentSnapshot.age += 1;
+}, true);
 ```
 
 ### `useBoolean`
