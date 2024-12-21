@@ -51,8 +51,8 @@ setUser(mostRecentSnapshot => {
   mostRecentSnapshot.age += 1;
 });
 
-// It also accept 2nd argument for deep cloning the `mostRecentSnapshot` of state.
-// By default it is set to false, hence it create shallow copy of `Object` types.
+// It also accepts a second argument for deep cloning the `mostRecentSnapshot` of the state.
+// By default, this is set to false, so it creates a shallow copy of `Object` types.
 setUser(mostRecentSnapshot => {
   mostRecentSnapshot.age += 5;
 }, true);
