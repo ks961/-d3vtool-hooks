@@ -128,6 +128,113 @@ const DropdownComponent: React.FC = () => {
 export default DropdownComponent;
 ```
 
+### usePersistentState
+
+`usePersistentState` is a custom hook that helps manage state and persists it in `localStorage` (or a similar storage). It allows you to store and retrieve state values across sessions and tabs, with an option to clear the state from storage when the component unmounts.
+
+#### API
+
+```ts
+const [state, setState] = usePersistentState<T>(
+  key: string, 
+  initialState: T | () => T, 
+  config?: { clearStorageOnUnMount: boolean }
+);
+```
+
+- `key`: A unique string to identify the stored state in `localStorage`.
+- `initialState`: The initial state value or a function that returns the initial state.
+- `config`: Optional configuration object.
+  - `clearStorageOnUnMount`: Boolean flag indicating whether to clear the state from storage when the component unmounts (default is `false`).
+
+#### Example
+
+```tsx
+import { usePersistentState } from "@d3vtool/hooks";
+
+const CounterComponent: React.FC = () => {
+    const [ count, setCount ] = usePersistentState("count", 0);
+
+    function handleInc() {
+        setCount(prev => prev + 1);
+    }
+    
+    function handleDec() {
+        setCount(prev => prev - 1);
+    }
+
+    return(
+        <div style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "12px",
+            marginTop: "12rem"
+        }}>
+            <button onClick={handleDec}>DEC</button>
+            <p>{count}</p>
+            <button onClick={handleInc}>INC</button>
+        </div>
+    );
+};
+
+export default CounterComponent;
+```
+
+#### Example with `clearStorageOnUnMount`
+
+```tsx
+import { usePersistentState } from "@d3vtool/hooks";
+
+const pStateConfig = {
+    clearStorageOnUnMount: true
+};
+const SessionComponent: React.FC = () => {
+    const [sessionData, setSessionData] = usePersistentState('session', {}, pStateConfig);
+
+    return (
+        <div>
+            <p>Session Data: {JSON.stringify(sessionData)}</p>
+            <button onClick={() => setSessionData({ user: 'John Doe' })}>Set User</button>
+            <button onClick={() => setSessionData({})}>Clear Session</button>
+        </div>
+    );
+};
+
+export default SessionComponent;
+```
+
+### useReadPersistentState
+
+`useReadPersistentState` is a custom hook that reads the persistent state from `localStorage` without providing the ability to update it across tabs.
+
+#### API
+
+```ts
+const state = useReadPersistentState<T>(key: string): T | undefined;
+```
+
+- `key`: A unique string to identify the stored state in `localStorage`.
+- Returns the state value if found in storage, or `undefined` if no value is found for the given key.
+
+#### Example
+
+```tsx
+import { useReadPersistentState } from "@d3vtool/hooks";
+
+const ReadCounterComponent: React.FC = () => {
+    const state = useReadPersistentState<number>("counter");
+
+    return (
+        <div>
+            Read: {state}
+        </div>
+    );
+};
+
+export default ReadCounterComponent;
+```
+
 ### License
 
 This package is open-source and licensed under the [MIT License](LICENSE).
