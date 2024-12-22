@@ -6,6 +6,7 @@ import {
     useHub,
     createHub,
     useReadHub,
+    useStoredHub,
     useComputeHub,
     createComputedHub
 } from "./useHub";
@@ -16,6 +17,7 @@ export {
     useMState,
     useReadHub,
     useBoolean,
+    useStoredHub,
     useComputeHub,
     useClickOutside,
     createComputedHub,

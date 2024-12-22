@@ -416,6 +416,110 @@ const ComputedCounterComponent: React.FC = () => {
 export default ComputedCounterComponent;
 ```
 
+Here’s the usage documentation for the `useStoredHub` hook with the provided example:
+
+### useStoredHub
+
+`useStoredHub` is a custom hook that synchronizes a shared state hub with persistent storage (like localStorage). This allows the state of the hub to persist across pages and tabs reloads or navigation. 
+
+#### API
+
+```ts
+const [state, setState] = useStoredHub<T>(key: string, hub: Hub<T>);
+```
+
+- `key`: The key used to store and retrieve the hub's state from persistent storage (e.g., localStorage).
+- `hub`: The shared state hub that holds the state.
+- Returns the current state and a function to update it.
+
+#### Example
+
+This example demonstrates how to use `useStoredHub` to manage and synchronize a counter across different pages across tabs. The counter state persists using localStorage and is shared between the `Home` and `ContactUs` components.
+
+1. **countHub.ts:**
+
+```ts
+import { createHub } from "@d3vtool/hooks";
+
+export const countHub = createHub(1);
+```
+
+2. **Page1 Component:**
+
+```tsx
+import { countHub } from "./countHub";
+import { Link } from "react-router-dom";
+import { useStoredHub } from "@d3vtool/hooks";
+
+export default function Page1() {
+
+    const [count, setCount] = useStoredHub<number>("count", countHub);
+
+    function handleInc() {
+        setCount(prev => prev + 1);
+    }
+
+    function handleDec() {
+        setCount(prev => prev - 1);
+    }
+
+    return (
+        <div style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "12px",
+            marginTop: "12rem"
+        }}>
+            <button onClick={handleDec}>DEC</button>
+            <p>{count}</p>
+            <button onClick={handleInc}>INC</button>
+            <Link to="/page2">Page 2</Link>
+        </div>
+    );
+}
+```
+
+3. **Page2 Component:**
+
+```tsx
+import { countHub } from "./countHub";
+import { Link } from "react-router-dom";
+import { useStoredHub } from "@d3vtool/hooks";
+
+export default function Page2() {
+
+    const [count, setCount] = useStoredHub<number>("count", countHub);
+
+    function handleInc() {
+        setCount(prev => prev + 1);
+    }
+
+    function handleDec() {
+        setCount(prev => prev - 1);
+    }
+
+    return (
+        <div style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "12px",
+            marginTop: "12rem"
+        }}>
+            <button onClick={handleDec}>DEC</button>
+            <p>{count}</p>
+            <button onClick={handleInc}>INC</button>
+            <Link to="/">Page 1</Link>
+        </div>
+    );
+}
+```
+
+#### How it works:
+- `useStoredHub` is used in both `Page1` and `Page2` components with the same key `"count"`, ensuring that the counter value is shared and synchronized between the two pages or across tabs.
+- The `count` state is persisted using localStorage and can be incremented or decremented on either page. The updated state is reflected on both pages or in pages opend on different tabs.
+
 ### License
 
 This package is open-source and licensed under the [MIT License](LICENSE).

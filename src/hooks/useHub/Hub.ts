@@ -16,6 +16,10 @@ export class Hub<T> {
         return this.currentState;
     }
 
+    public setCurrentState(newState: T) {
+        this.currentState = newState;
+    }
+
     public attachListener(listener: React.Dispatch<SetStateAction<T>>) {
         this.listeners.add(listener);
     }
@@ -25,12 +29,15 @@ export class Hub<T> {
     }
 
     public notifyListener(newState: T) {
-        this.currentState = newState;
         this.listeners.forEach(listener => listener(newState));
         this.onChangeListeners.forEach(listener => listener());
     }
     
     public onChange(callback: VoidFunction) {
+        this.onChangeListeners.add(callback);
+    }
+
+    public removeOnChange(callback: VoidFunction) {
         this.onChangeListeners.add(callback);
     }
 }
