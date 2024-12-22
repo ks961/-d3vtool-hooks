@@ -130,7 +130,7 @@ export default DropdownComponent;
 
 ### usePersistentState
 
-`usePersistentState` is a custom hook that helps manage state and persists it in `localStorage` (or a similar storage). It allows you to store and retrieve state values across sessions and tabs, with an option to clear the state from storage when the component unmounts.
+`usePersistentState` is a custom hook that helps manage state and persists it in `localStorage`. It allows you to store and retrieve state values across sessions and tabs, with an option to clear the state from storage when the component unmounts.
 
 #### API
 
