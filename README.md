@@ -1,7 +1,6 @@
 # React Hooks Collection
 
-A collection of custom React hooks designed to simplify common tasks in your React applications.
-Here’s the list of all the hook names in bullet points:
+A collection of custom React hooks designed to simplify common tasks in your React applications. Here’s the list of all the hooks:
 
 - **useMState**
   - It is a custom mutable version of useState that supports direct or
