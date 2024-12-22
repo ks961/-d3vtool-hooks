@@ -332,6 +332,9 @@ const [state, setState] = useHub<T>(hub: Hub<T>);
 ```tsx
 import { useHub } from "@d3vtool/hooks";
 
+// Always create `hub` outside of your component.
+const myHub = createHub({ count: 0 });
+
 const CounterComponent: React.FC = () => {
     const [count, setCount] = useHub(myHub);
 
@@ -396,6 +399,9 @@ const computedState = useComputeHub<T>(hub: Hub<T>, computeAction: ComputeAction
 
 ```tsx
 import { useComputeHub } from "@d3vtool/hooks";
+
+// Always create `hub` outside of your component.
+const myHub = createHub({ count: 0 });
 
 const ComputedCounterComponent: React.FC = () => {
     const doubleCount = useComputeHub(myHub, (state) => state.count * 2);
