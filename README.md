@@ -33,6 +33,9 @@ A collection of custom React hooks designed to simplify common tasks in your Rea
 - **useComputeHub**
   - Computes a derived state from a shared state hub using a custom compute function.
 
+- **useStoredHub**
+  - `useStoredHub` is a custom hook that synchronizes a shared state hub with persistent storage across tabs and pages.
+
 ## Installation
 
 You can install the package using npm or yarn:
