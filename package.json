@@ -47,22 +47,44 @@
     "useReadPersistentState",
     "react-storage-hooks",
     "state-persistence-hook",
-    "persistent-storage-react"
+    "persistent-storage-react",
+    "useHub",
+    "use-read-hub",
+    "hub-state",
+    "shared-state-management",
+    "createHub",
+    "create-computed-hub",
+    "computed-hub",
+    "react-hub-hooks",
+    "state-hub",
+    "react-shared-state",
+    "useComputeHub",
+    "hub-compute",
+    "computed-state",
+    "atomic-state",
+    "centralized-state-management",
+    "state-centralization",
+    "global-state-management",
+    "react-atomic-state",
+    "react-centralized-state",
+    "react-global-state",
+    "atomic-react-state",
+    "react-state-synchronization",
+    "centralized-react-state"
   ],
   "files": [
     "dist"
   ],
   "dependencies": {
-    "@d3vtool/secid": "^1.1.4",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "react-router-dom": "^7.1.0"
+    "react-dom": "^18.3.1"
   },
   "peerDependencies": {
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },
   "devDependencies": {
+    "react-router-dom": "^7.1.0",
     "@eslint/js": "^9.17.0",
     "@types/node": "^22.10.2",
     "@types/react": "^18.3.17",
