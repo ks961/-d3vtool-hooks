@@ -30,7 +30,20 @@
     "react-custom-hooks",
     "react-hook-library",
     "use-toggle",
-    "use-boolean-toggle"
+    "use-boolean-toggle",
+    "usePersistentState",
+    "use-read-persistent-state",
+    "use-persistent-state",
+    "localStorage-hook",
+    "persistent-state-hook",
+    "use-localstorage-state",
+    "state-persistence",
+    "react-persistent-state",
+    "use-local-storage-hook",
+    "useReadPersistentState",
+    "react-storage-hooks",
+    "state-persistence-hook",
+    "persistent-storage-react"
   ],
   "files": [
     "dist"
