@@ -24,6 +24,9 @@ A collection of custom React hooks designed to simplify common tasks in your Rea
 - [**createComputedHub**](#createcomputedhub)
   - Creates a computed hub that derives its state from an existing hub using a compute action.
 
+- [**createPromiseHub**](#createpromisehub)
+  - Creates a hub to manage asynchronous state with a promise action, handling state, errors, and loading.
+
 - [**useHub**](#usehub)
   - Subscribes to a shared state hub and provides access to both the state and an update function.
 
@@ -35,9 +38,6 @@ A collection of custom React hooks designed to simplify common tasks in your Rea
 
 - [**useStoredHub**](#usestoredhub)
   - `useStoredHub` is a custom hook that synchronizes a shared state hub with persistent storage across tabs and pages.
-
-- [**createPromiseHub**](#createpromisehub)
-  - Creates a hub to manage asynchronous state with a promise action, handling state, errors, and loading.
 
 - [**usePromiseHub**](#usepromisehub)
   - Manages state from a promise hub, providing access to current state, errors, loading status, and a retry action.
