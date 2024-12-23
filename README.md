@@ -523,6 +523,133 @@ export default function Page2() {
 - `useStoredHub` is used in both `Page1` and `Page2` components with the same key `"count"`, ensuring that the counter value is shared and synchronized between the two pages or across tabs.
 - The `count` state is persisted using localStorage and can be incremented or decremented on either page. The updated state is reflected on both pages or in pages opend on different tabs.
 
+
+### `createPromiseHub`
+
+`createPromiseHub` is a function that creates a hub to manage state with a promise action. This hub can then be used with the `usePromiseHub` or `usePromiseReadHub` hooks.
+
+#### API
+
+```ts
+const promiseHub = createPromiseHub(initialState, promiseAction);
+```
+
+- `initialState`: The initial state value or initializer function.
+- `promiseAction`: The async function that will resolve to update the state.
+
+#### Example
+
+```ts
+import { createPromiseHub } from "@d3vtool/hooks";
+
+export const fetchUserDataHub = createPromiseHub(undefined, async (prevState) => {
+    const response = await fetch('/api/user');
+    const data = await response.json();
+    return data;
+});
+```
+
+### `usePromiseHub`
+
+`usePromiseHub` is a custom hook that helps manage asynchronous state using a promise hub. It provides the current state, loading status, error information, and a way to re-trigger the async action.
+
+#### API
+
+```ts
+const [state, error, isLoading, retry] = usePromiseHub(promiseHub, immediate?);
+```
+
+- `promiseHub`: The promise hub created using `createPromiseHub`.
+- `immediate`: (Optional) If `true`, the hook will immediately trigger the promise action. Defaults to `true`.
+
+#### Example
+
+```tsx
+import { usePromiseHub } from "@d3vtool/hooks";
+import { fetchUserDataHub } from "./userHub";
+
+const UserProfile: React.FC = () => {
+    const [userData, error, isLoading, retry] = usePromiseHub(fetchUserDataHub);
+
+    return (
+        <div>
+            {isLoading ? <p>Loading user data...</p> : <p>User: {userData?.name}</p>}
+            {error && <p>Error: {error.message}</p>}
+            <button onClick={retry}>Retry</button>
+        </div>
+    );
+};
+
+export default UserProfile;
+```
+
+### `usePromiseReadHub`
+
+`usePromiseReadHub` is a custom hook that provides read-only access to the state managed by a promise hub. It returns the current state, any error, and loading status.
+
+#### API
+
+```ts
+const [state, error, isLoading] = usePromiseReadHub(promiseHub);
+```
+
+- `promiseHub`: The promise hub managing the async state.
+
+#### Example
+
+```tsx
+import { usePromiseReadHub } from "@d3vtool/hooks";
+import { fetchUserDataHub } from "./userHub";
+
+const UserProfileReadOnly: React.FC = () => {
+    const [userData, error, isLoading] = usePromiseReadHub(fetchUserDataHub);
+
+    return (
+        <div>
+            {isLoading ? <p>Loading user data...</p> : <p>User: {userData?.name}</p>}
+            {error && <p>Error: {error.message}</p>}
+        </div>
+    );
+};
+
+export default UserProfileReadOnly;
+```
+
+### `usePromiseHubAction`
+
+`usePromiseHubAction` is a custom hook that provides access to the reAction function. This allows you to manually trigger the promise action from any other pages | components.
+
+#### API
+
+```ts
+const reAction = usePromiseHubAction(promiseHub);
+```
+
+- `promiseHub`: The promise hub managing the asynchronous state.
+
+#### Example
+
+```tsx
+import { usePromiseHubAction } from "@d3vtool/hooks";
+import { fetchUserDataHub } from "./userHub";
+
+const ManualUserUpdate: React.FC = () => {
+    const retryAction = usePromiseHubAction(fetchUserDataHub);
+
+    const handleRetry = async () => {
+        const updatedUser = await retryAction();
+        console.log('Updated user data:', updatedUser);
+    };
+
+    return (
+        <button onClick={handleRetry}>Retry Fetch User Data</button>
+    );
+};
+
+export default ManualUserUpdate;
+```
+
+
 ### License
 
 This package is open-source and licensed under the [MIT License](LICENSE).

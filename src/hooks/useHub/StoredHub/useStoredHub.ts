@@ -1,7 +1,8 @@
-import { Hub } from "./Hub";
 import { useCallback, useEffect } from "react";
-import { PrevStateAction, UpdateStateAction } from "./useHub";
-import { usePersistentState } from "../usePersistentState";
+import { usePersistentState } from "../../usePersistentState";
+import { Hub } from "../Hub/Hub";
+import { UpdateStateAction, PrevStateAction } from "../Hub/useHub";
+
 
 export type UseStoredHub<T> = [ T, UpdateStateAction<T> ];
 
@@ -28,7 +29,7 @@ export function useStoredHub<T>(key: string, hub: Hub<T>): UseStoredHub<T> {
         hub.attachListener(setState);
         
         return () => {
-            hub.removeListener(setState);
+            hub.detachListener(setState);
         }
     }, [hub]);
 

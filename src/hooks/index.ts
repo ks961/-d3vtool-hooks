@@ -8,7 +8,11 @@ import {
     useReadHub,
     useStoredHub,
     useComputeHub,
-    createComputedHub
+    usePromiseHub,
+    createPromiseHub,
+    usePromiseReadHub,
+    createComputedHub,
+    usePromiseHubAction,
 } from "./useHub";
 
 export {
@@ -18,9 +22,13 @@ export {
     useReadHub,
     useBoolean,
     useStoredHub,
+    usePromiseHub, 
     useComputeHub,
     useClickOutside,
+    createPromiseHub,
+    usePromiseReadHub, 
     createComputedHub,
     usePersistentState,
+    usePromiseHubAction,
     useReadPersistentState,
 };

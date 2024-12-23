@@ -47,7 +47,7 @@ export function useHub<T>(hub: Hub<T>): UseHub<T> {
         hub.attachListener(setState);
 
         return () => {   
-            hub.removeListener(setState);
+            hub.detachListener(setState);
         }
     }, [hub]);
 
@@ -79,11 +79,21 @@ export function useHub<T>(hub: Hub<T>): UseHub<T> {
  * console.log(state);
  */
 export function useReadHub<T>(hub: Hub<T>): T {
-    return hub.getCurrentState();
+    const [ state, setState ] = useState(hub.getCurrentState());
+
+    useEffect(() => {
+        hub.attachListener(setState);
+
+        return () => {   
+            hub.detachListener(setState);
+        }
+    }, [hub]);
+    
+    return state;
 }
 
 /**
- * A custom hook that computes a derived state based on the current state from a shared state hub using a provided compute action.
+ * A custom hook that computes a derived state based on the current state from a shared state hub using a provided compute action in the same component.
  * 
  * @template T - The type of the state managed by the hub.
  * @param {Hub<T>} hub - An object that manages shared state across multiple components or contexts.
@@ -100,11 +110,19 @@ export function useReadHub<T>(hub: Hub<T>): T {
 export function useComputeHub<T>(hub: Hub<T>, computeAction: ComputeAction<T>): T {
     const computeHub = new Hub(computeAction(hub.getCurrentState()));
 
-    hub.onChange(() => {
+    function handleOnChange() {
         const currentHubState = hub.getCurrentState();
         const newComputedState = computeAction(currentHubState);
         computeHub.notifyListener(newComputedState);
-    });
+    }
+    
+    useEffect(() => {
+        hub.onChange(handleOnChange);
+
+        return () => {
+            hub.removeOnChange(handleOnChange);
+        }
+    }, [hub]);
 
     return computeHub.getCurrentState();
 }

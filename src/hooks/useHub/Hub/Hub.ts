@@ -4,7 +4,7 @@ export type OnChangeAction = () => void;
 export type InitializerAction<T> = () => T;
 
 export class Hub<T> {
-    private currentState: T;
+    protected currentState: T;
     private onChangeListeners = new Set<OnChangeAction>();
     private listeners = new Set<React.Dispatch<SetStateAction<T>>>();
 
@@ -18,17 +18,19 @@ export class Hub<T> {
 
     public setCurrentState(newState: T) {
         this.currentState = newState;
+        this.onChangeListeners.forEach(listener => listener());
     }
 
     public attachListener(listener: React.Dispatch<SetStateAction<T>>) {
         this.listeners.add(listener);
     }
 
-    public removeListener(listener: React.Dispatch<SetStateAction<T>>) {
+    public detachListener(listener: React.Dispatch<SetStateAction<T>>) {
         this.listeners.delete(listener);
     }
 
     public notifyListener(newState: T) {
+        this.currentState = newState;
         this.listeners.forEach(listener => listener(newState));
         this.onChangeListeners.forEach(listener => listener());
     }
@@ -38,7 +40,7 @@ export class Hub<T> {
     }
 
     public removeOnChange(callback: VoidFunction) {
-        this.onChangeListeners.add(callback);
+        this.onChangeListeners.delete(callback);
     }
 }
 
@@ -62,7 +64,6 @@ export function createHub<T>(initialState: T | InitializerAction<T>): Hub<T> {
     return new Hub<T>(initialState instanceof Function ?
         initialState() : initialState)
 }
-
 
 /**
  * A type representing a function that computes a derived state based on the current state of the hub.
