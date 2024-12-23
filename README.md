@@ -2,50 +2,50 @@
 
 A collection of custom React hooks designed to simplify common tasks in your React applications. Here’s the list of all the hooks:
 
-- **useMState**
+- [**useMState**](#usemstate)
   - It is a custom mutable version of useState that supports direct or
   initializer-action-based initial state and enables state updates using the most recent mutable snapshot.
 
-- **useBoolean**
+- [**useBoolean**](#useboolean)
   - Manages boolean states with easy toggling actions.
 
-- **useClickOutside**
+- [**useClickOutside**](#useclickoutside)
   - It's a custom hook that triggers a callback when a click occurs outside the referenced element, useful for scenarios like closing modals or dropdowns.
 
-- **usePersistentState**
+- [**usePersistentState**](#usepersistentstate)
   - Manages state that persists in localStorage or session-like storage.
 
-- **useReadPersistentState**
+- [**useReadPersistentState**](#usereadpersistentstate)
   - Reads a persistent state from localStorage without providing update capabilities.
 
-- **createHub**
+- [**createHub**](#createhub)
   - Creates a shared state hub to manage and synchronize state across multiple components.
 
-- **createComputedHub**
+- [**createComputedHub**](#createcomputedhub)
   - Creates a computed hub that derives its state from an existing hub using a compute action.
 
-- **useHub**
+- [**useHub**](#usehub)
   - Subscribes to a shared state hub and provides access to both the state and an update function.
 
-- **useReadHub**
+- [**useReadHub**](#usereadhub)
   - Reads the current state from a shared state hub without the ability to update it.
 
-- **useComputeHub**
+- [**useComputeHub**](#usecomputehub)
   - Computes a derived state from a shared state hub using a custom compute function.
 
-- **useStoredHub**
+- [**useStoredHub**](#usestoredhub)
   - `useStoredHub` is a custom hook that synchronizes a shared state hub with persistent storage across tabs and pages.
 
-- **createPromiseHub**
+- [**createPromiseHub**](#createpromisehub)
   - Creates a hub to manage asynchronous state with a promise action, handling state, errors, and loading.
 
-- **usePromiseHub**
+- [**usePromiseHub**](#usepromisehub)
   - Manages state from a promise hub, providing access to current state, errors, loading status, and a retry action.
 
-- **usePromiseReadHub**
+- [**usePromiseReadHub**](#usepromisereadhub)
   - Reads the current state, error, and loading status from a promise hub without triggering updates.
 
-- **usePromiseHubAction**
+- [**usePromiseHubAction**](#usepromisehubaction)
   - Returns a function to manually trigger the asynchronous action managed by a promise hub.
 
 ## Installation
