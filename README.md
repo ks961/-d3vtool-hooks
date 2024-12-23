@@ -36,6 +36,18 @@ A collection of custom React hooks designed to simplify common tasks in your Rea
 - **useStoredHub**
   - `useStoredHub` is a custom hook that synchronizes a shared state hub with persistent storage across tabs and pages.
 
+- **`createPromiseHub`**
+  - Creates a hub to manage asynchronous state with a promise action, handling state, errors, and loading.
+
+- **`usePromiseHub`**
+  - Manages state from a promise hub, providing access to current state, errors, loading status, and a retry action.
+
+- **`usePromiseReadHub`**
+  - Reads the current state, error, and loading status from a promise hub without triggering updates.
+
+- **`usePromiseHubAction`**
+  - Returns a function to manually trigger the asynchronous action managed by a promise hub.
+
 ## Installation
 
 You can install the package using npm or yarn:
