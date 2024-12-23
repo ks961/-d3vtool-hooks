@@ -664,21 +664,18 @@ const ManualUserUpdate: React.FC = () => {
 export default ManualUserUpdate;
 ```
 
-Here’s a `README.md` usage example for the `useSecId` function:
-
----
-
 ### `useSecId`
 
-`useSecId` is a custom hook that generates a unique string identifier (ID) that can be used for elements, components, or any case where a unique ID is required.
+`useSecId` is a custom hook that generates a unique string identifier with customizable length and character set.
 
 #### API
 
 ```ts
-const id = useSecId();
+const id = useSecId(length?: number, alphabets?: string);
 ```
 
-- **Returns**: A unique string identifier.
+- **`length`** *(optional)*: The desired length of the generated ID. Defaults to `8`.
+- **`alphabets`** *(optional)*: A string representing the set of characters to use when generating the ID.
 
 #### Example
 
@@ -686,22 +683,23 @@ const id = useSecId();
 import React from 'react';
 import { useSecId } from "@d3vtool/hooks";
 
-const FormComponent: React.FC = () => {
-    const inputId = useSecId();
-    const buttonId = useSecId();
+const UniqueIdComponent: React.FC = () => {
+    const shortId = useSecId(); // Default length of 8
+    const customId = useSecId(12, "ABC123"); // Custom length and character set
 
     return (
-        <form>
-            <label htmlFor={inputId}>Enter your name:</label>
-            <input id={inputId} type="text" />
-
-            <button id={buttonId} type="submit">Submit</button>
-        </form>
+        <div>
+            <p>Generated Short ID: {shortId}</p>
+            <p>Generated Custom ID: {customId}</p>
+        </div>
     );
 };
 
-export default FormComponent;
+export default UniqueIdComponent;
 ```
+
+In this example, `useSecId` is used to generate both a default 8-character ID and a custom 12-character ID using a restricted set of characters (`"ABC123"`).
+
 
 ### License
 
