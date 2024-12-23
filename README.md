@@ -48,6 +48,9 @@ A collection of custom React hooks designed to simplify common tasks in your Rea
 - [**usePromiseHubAction**](#usepromisehubaction)
   - Returns a function to manually trigger the asynchronous action managed by a promise hub.
 
+- [**useSecId**](#usesecid)
+  - `useSecId` is a custom hook that generates a unique string identifier (ID) that can be used for elements, components, or any case where a unique ID is required.
+
 ## Installation
 
 You can install the package using npm or yarn:
@@ -661,6 +664,44 @@ const ManualUserUpdate: React.FC = () => {
 export default ManualUserUpdate;
 ```
 
+Here’s a `README.md` usage example for the `useSecId` function:
+
+---
+
+### `useSecId`
+
+`useSecId` is a custom hook that generates a unique string identifier (ID) that can be used for elements, components, or any case where a unique ID is required.
+
+#### API
+
+```ts
+const id = useSecId();
+```
+
+- **Returns**: A unique string identifier.
+
+#### Example
+
+```tsx
+import React from 'react';
+import { useSecId } from "@d3vtool/hooks";
+
+const FormComponent: React.FC = () => {
+    const inputId = useSecId();
+    const buttonId = useSecId();
+
+    return (
+        <form>
+            <label htmlFor={inputId}>Enter your name:</label>
+            <input id={inputId} type="text" />
+
+            <button id={buttonId} type="submit">Submit</button>
+        </form>
+    );
+};
+
+export default FormComponent;
+```
 
 ### License
 

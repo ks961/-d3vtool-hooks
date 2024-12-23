@@ -14,9 +14,11 @@ import {
     createComputedHub,
     usePromiseHubAction,
 } from "./useHub";
+import { useSecId } from "./useSecId";
 
 export {
     useHub,
+    useSecId,
     createHub,
     useMState,
     useReadHub,
