@@ -49,6 +49,7 @@
     "state-persistence-hook",
     "persistent-storage-react",
     "useHub",
+    "useSecId",
     "use-read-hub",
     "hub-state",
     "shared-state-management",
@@ -93,7 +94,12 @@
     "async-promise-react",
     "async-state-sync",
     "promise-based-state-management",
-    "react-async-management"
+    "react-async-management",
+    "unique-identifier",
+    "secure-id-generator",
+    "id-generator",
+    "random-id-generator",
+    "secid"
   ],
   "files": [
     "dist"

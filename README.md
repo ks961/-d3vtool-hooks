@@ -13,10 +13,10 @@ A collection of custom React hooks designed to simplify common tasks in your Rea
   - It's a custom hook that triggers a callback when a click occurs outside the referenced element, useful for scenarios like closing modals or dropdowns.
 
 - [**usePersistentState**](#usepersistentstate)
-  - Manages state that persists in localStorage or session-like storage.
+  - Manages state that persists in localStorage across tabs/window and components.
 
 - [**useReadPersistentState**](#usereadpersistentstate)
-  - Reads a persistent state from localStorage without providing update capabilities.
+  - Reads a persistent state from localStorage without providing update capabilities across tabs/window and components.
 
 - [**createHub**](#createhub)
   - Creates a shared state hub to manage and synchronize state across multiple components.
