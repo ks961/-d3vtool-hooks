@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 
 /**
  * Type representing a function that initializes state.
@@ -71,7 +71,7 @@ export function usePersistentState<T = unknown>(
 ): UsePersistentState<T> {
 
     const prevKeyRef = useRef<string>("");
-    const isCurrentScopeRef = useRef<boolean>(false);
+    const isStateSet = useRef<boolean>(false);
 
     function initialize() {
         const iState = (initialState instanceof Function) ?
@@ -86,8 +86,8 @@ export function usePersistentState<T = unknown>(
         if(event.key === key && event.newValue) {
             localStorage.setItem(key, event.newValue);
             
-            if(isCurrentScopeRef.current) {
-                isCurrentScopeRef.current = false;                
+            if(isStateSet.current) {
+                isStateSet.current = false;                
                 return;
             }
 
@@ -96,7 +96,7 @@ export function usePersistentState<T = unknown>(
         }
     }
 
-    useEffect(() => {
+    useLayoutEffect(() => {
         if(!window) return;
 
         try {
@@ -106,7 +106,7 @@ export function usePersistentState<T = unknown>(
             
             setState(parsedData);
         } catch {
-            isCurrentScopeRef.current = true;
+            isStateSet.current = true;
             dispatchStorageEvent(key, state);
         }
 
@@ -142,12 +142,16 @@ export function usePersistentState<T = unknown>(
     }
 
     const updateState = useCallback((newState: T | PrevStateAction<T>) => {
+        setState(prev => {
+            const nState = (newState instanceof Function ? 
+                (newState as PrevStateAction<T>)(prev) : newState);
+            
+            isStateSet.current = true;
+            dispatchStorageEvent(key, nState);
 
-        const nState = (newState instanceof Function ? 
-            (newState as PrevStateAction<T>)(state!) : newState);
-        
-        dispatchStorageEvent(key, nState);
-    }, [state]);
+            return nState;
+        })
+    }, []);
 
     return [ state, updateState ] as const; 
 }

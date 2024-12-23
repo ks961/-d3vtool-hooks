@@ -28,6 +28,7 @@ export function useReadPersistentState<T = unknown>(key: string): T | undefined 
 
     useEffect(() => {
         if(!window) return;
+        
         try {
             const data = localStorage.getItem(key);
         
