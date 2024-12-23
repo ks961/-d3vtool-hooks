@@ -324,12 +324,27 @@ const computedHub = createComputedHub<T>(hub: Hub<T>, computeAction: ComputeActi
 ```ts
 import { createHub, createComputedHub } from "@d3vtool/hooks";
 
-const myHub = createHub({ count: 0 });
+const countHub = createHub({ count: 0 });
 
 // Create a computed hub that doubles the count value:
-const computedHub = createComputedHub(myHub, (state) => ({
+// Always use `createComputedHub` with `useReadHub`
+const doubleComputedHub = createComputedHub(countHub, (state) => ({
     count: state.count * 2
 }));
+
+
+export function DoubleCounter() {
+
+    // Always use computedHub with `useReadHub`
+    // Whenever 'countHub' is updated, 'doubleComputedHub' will automatically update as well.
+    const doubleCount = useReadHub<number>(doubleComputedHub);
+
+    return (
+        <>
+            <p>{doubleCount}</p>
+        </>
+    )
+}
 ```
 
 ### useHub
