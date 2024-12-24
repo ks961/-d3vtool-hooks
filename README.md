@@ -51,6 +51,8 @@ A collection of custom React hooks designed to simplify common tasks in your Rea
 - [**useSecId**](#usesecid)
   - `useSecId` is a custom hook that returns a function to generate unique string identifiers with customizable length and character set.
 
+
+
 ## Installation
 
 You can install the package using npm or yarn:
@@ -66,6 +68,7 @@ npm install @d3vtool/hooks
 ```bash
 yarn add @d3vtool/hooks
 ```
+
 
 ## Available Hooks
 
@@ -106,6 +109,8 @@ setUser(mostRecentSnapshot => {
   mostRecentSnapshot.age += 5;
 }, true);
 ```
+
+
 
 ### `useBoolean`
 
@@ -160,6 +165,7 @@ return (
 - **`setFalse`**: Sets the state to `false`.
 
 
+
 ### `useClickOutside`
 
 `useClickOutside` is a custom hook that triggers a callback when a click event occurs outside the referenced element. It allows you to detect clicks outside a specific component and can be useful for scenarios like closing modals or dropdowns.
@@ -196,6 +202,8 @@ const DropdownComponent: React.FC = () => {
 
 export default DropdownComponent;
 ```
+
+
 
 ### usePersistentState
 
@@ -273,6 +281,8 @@ const SessionComponent: React.FC = () => {
 export default SessionComponent;
 ```
 
+
+
 ### useReadPersistentState
 
 `useReadPersistentState` is a custom hook that reads the persistent state from `localStorage` without providing the ability to update it across tabs.
@@ -304,6 +314,8 @@ const ReadCounterComponent: React.FC = () => {
 export default ReadCounterComponent;
 ```
 
+
+
 ### createHub
 
 `createHub` creates a shared state hub that can manage and synchronize state across multiple components.
@@ -324,6 +336,8 @@ import { createHub } from "@d3vtool/hooks";
 
 const myHub = createHub({ count: 0 });
 ```
+
+
 
 ### createComputedHub
 
@@ -367,6 +381,8 @@ export function DoubleCounter() {
 }
 ```
 
+
+
 ### useHub
 
 `useHub` is a custom hook that subscribes to a shared state hub and provides access to the current state along with a function to update it.
@@ -403,6 +419,8 @@ const CounterComponent: React.FC = () => {
 export default CounterComponent;
 ```
 
+
+
 ### useReadHub
 
 `useReadHub` is a custom hook that reads the current state from a shared state hub without providing a way to update it.
@@ -433,6 +451,8 @@ const DisplayCounterComponent: React.FC = () => {
 
 export default DisplayCounterComponent;
 ```
+
+
 
 ### useComputeHub
 
@@ -470,6 +490,8 @@ export default ComputedCounterComponent;
 ```
 
 Here’s the usage documentation for the `useStoredHub` hook with the provided example:
+
+
 
 ### useStoredHub
 
@@ -576,6 +598,7 @@ export default function Page2() {
 - The `counter` state is persisted using localStorage and can be incremented or decremented on either page. The updated state is reflected on both pages or in pages opend on different tabs.
 
 
+
 ### `createPromiseHub`
 
 `createPromiseHub` is a function that creates a hub to manage state with a promise action. This hub can then be used with the `usePromiseHub` or `usePromiseReadHub` hooks.
@@ -600,6 +623,8 @@ export const fetchUserDataHub = createPromiseHub(undefined, async (prevState) =>
     return data;
 });
 ```
+
+
 
 ### `usePromiseHub`
 
@@ -635,6 +660,8 @@ const UserProfile: React.FC = () => {
 export default UserProfile;
 ```
 
+
+
 ### `usePromiseReadHub`
 
 `usePromiseReadHub` is a custom hook that provides read-only access to the state managed by a promise hub. It returns the current state, any error, and loading status.
@@ -666,6 +693,8 @@ const UserProfileReadOnly: React.FC = () => {
 
 export default UserProfileReadOnly;
 ```
+
+
 
 ### `usePromiseHubAction`
 
@@ -728,6 +757,7 @@ export default ProductList;
 - The `productListHub` is responsible for fetching data from `http://localhost:4000/products`.
 - The `refetchProducts` action in the `ProductList` component triggers the fetch operation, updating the state in the hub.
 - The button becomes disabled with "Loading..." text while the data is being fetched, and any errors encountered during the fetch are displayed below the button.
+
 
 
 ### `useSecId`
