@@ -49,7 +49,7 @@ A collection of custom React hooks designed to simplify common tasks in your Rea
   - Returns a function to manually trigger the asynchronous action managed by a promise hub.
 
 - [**useSecId**](#usesecid)
-  - `useSecId` is a custom hook that generates a unique string identifier (ID) that can be used for elements, components, or any case where a unique ID is required.
+  - `useSecId` is a custom hook that returns a function to generate unique string identifiers with customizable length and character set.
 
 ## Installation
 
@@ -681,16 +681,17 @@ export default ManualUserUpdate;
 
 ### `useSecId`
 
-`useSecId` is a custom hook that generates a unique string identifier with customizable length and character set.
+`useSecId` is a custom hook that returns a function to generate unique string identifiers with customizable length and character set.
 
 #### API
 
 ```ts
-const id = useSecId(length?: number, alphabets?: string);
+const generateId = useSecId(length?: number, alphabets?: string);
 ```
 
 - **`length`** *(optional)*: The desired length of the generated ID. Defaults to `8`.
 - **`alphabets`** *(optional)*: A string representing the set of characters to use when generating the ID.
+- **Returns**: A function that generates a new unique ID each time it is called.
 
 #### Example
 
@@ -698,22 +699,24 @@ const id = useSecId(length?: number, alphabets?: string);
 import React from 'react';
 import { useSecId } from "@d3vtool/hooks";
 
-const UniqueIdComponent: React.FC = () => {
-    const shortId = useSecId(); // Default length of 8
-    const customId = useSecId(12, "ABC123"); // Custom length and character set
+const IdGeneratorComponent: React.FC = () => {
+    const generateId = useSecId(); // Default: 8-character ID generator
+    const generateCustomId = useSecId(10, "ABC123"); // Custom: 10-character ID generator using "ABC123"
 
     return (
         <div>
-            <p>Generated Short ID: {shortId}</p>
-            <p>Generated Custom ID: {customId}</p>
+            <p>Generated ID: {generateId()}</p>
+            <p>Custom Generated ID: {generateCustomId()}</p>
         </div>
     );
 };
 
-export default UniqueIdComponent;
+export default IdGeneratorComponent;
 ```
 
-In this example, `useSecId` is used to generate both a default 8-character ID and a custom 12-character ID using a restricted set of characters (`"ABC123"`).
+In this example, `useSecId` is used to create two generators:
+- The first generates a default 8-character ID.
+- The second generates a custom 10-character ID using the characters `"ABC123"`.
 
 
 ### License
