@@ -46,7 +46,7 @@ A collection of custom React hooks designed to simplify common tasks in your Rea
   - Reads the current state, error, and loading status from a promise hub without triggering updates.
 
 - [**usePromiseHubAction**](#usepromisehubaction)
-  - Returns a function to manually trigger the asynchronous action managed by a promise hub.
+  - `usePromiseHubAction` is a custom hook that allows you to manually trigger an asynchronous action within a `PromiseHub` and provides the current loading state and any errors.
 
 - [**useSecId**](#usesecid)
   - `useSecId` is a custom hook that returns a function to generate unique string identifiers with customizable length and character set.
@@ -649,37 +649,66 @@ export default UserProfileReadOnly;
 
 ### `usePromiseHubAction`
 
-`usePromiseHubAction` is a custom hook that provides access to the reAction function. This allows you to manually trigger the promise action from any other pages | components.
+`usePromiseHubAction` is a custom hook that allows you to manually trigger an asynchronous action within a `PromiseHub` and provides the current loading state and any errors.
 
 #### API
 
 ```ts
-const reAction = usePromiseHubAction(promiseHub);
+const [reAction, error, isLoading] = usePromiseHubAction(promiseHub);
 ```
 
-- `promiseHub`: The promise hub managing the asynchronous state.
+- **`reAction`**: A function to trigger the asynchronous action manually.
+- **`error`**: The current error state if the action fails.
+- **`isLoading`**: A boolean indicating whether the action is currently loading.
 
 #### Example
 
+#### Defining `productListHub`
+
+The `productListHub` is created using `createPromiseHub`. It manages the asynchronous fetching of the product list from a REST API and stores the fetched data.
+
+```ts
+import { createPromiseHub } from "@d3vtool/hooks";
+import { TResponse, IProduct } from "./types"; // Assume you have these types
+
+export const productListHub = createPromiseHub<IProduct[] | undefined>(undefined, async () => {
+    const response = await fetch('http://localhost:4000/products');
+    const data = await response.json();
+    
+    return data;
+});
+```
+
+This example demonstrates how to trigger a product list refetch when clicking a button. The button is disabled and shows "Loading..." while the data is being fetched.
+
 ```tsx
+import React from 'react';
 import { usePromiseHubAction } from "@d3vtool/hooks";
-import { fetchUserDataHub } from "./userHub";
+import { productListHub } from "./productListHub";
 
-const ManualUserUpdate: React.FC = () => {
-    const retryAction = usePromiseHubAction(fetchUserDataHub);
-
-    const handleRetry = async () => {
-        const updatedUser = await retryAction();
-        console.log('Updated user data:', updatedUser);
-    };
+const ProductList: React.FC = () => {
+    const [refetchProducts, error, isLoading] = usePromiseHubAction(productListHub);
 
     return (
-        <button onClick={handleRetry}>Retry Fetch User Data</button>
+        <div>
+            <button onClick={refetchProducts} disabled={isLoading}>
+                {isLoading ? 'Loading...' : 'Refetch Products'}
+            </button>
+            {error && <p style={{ color: 'red' }}>Error fetching products: {error.message}</p>}
+        </div>
     );
 };
 
-export default ManualUserUpdate;
+export default ProductList;
 ```
+
+![usePromiseHubAction_Gif](https://raw.githubusercontent.com/ks961/imgs/refs/heads/main/usePromiseHubAction.gif)
+
+#### Notes:
+- The `productListHub` is responsible for fetching data from `http://localhost:4000/products`.
+- The `refetchProducts` action in the `ProductList` component triggers the fetch operation, updating the state in the hub.
+- The button becomes disabled with "Loading..." text while the data is being fetched, and any errors encountered during the fetch are displayed below the button.
+
 
 ### `useSecId`
 

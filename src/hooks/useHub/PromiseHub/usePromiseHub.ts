@@ -163,25 +163,63 @@ export function usePromiseReadHub<R, E = Error>(promiseHub: PromiseHub<R, E>): U
     ] as const;
 }
 
+
+export type UsePromiseHubAction<R, E> = [
+    ReAction<R>,
+    PromiseHubError<E>,
+    boolean,
+]
+
 /**
- * A hook that provides access to the reAction method of a given promise hub.
- * The `reAction` method allows you to manually trigger the asynchronous promise action defined in the hub.
+ * A custom hook that returns the reAction function from the provided PromiseHub, along with the current error state and loading status.
+ * 
+ * The `reAction` function allows you to manually trigger the asynchronous action defined within the hub.
  * 
  * @template R - The type of the state managed by the promise hub.
+ * @template E - The type of error that might be encountered during the promise execution. Defaults to `Error`.
  * 
- * @param {PromiseHub<R>} promiseHub - The promise hub managing the asynchronous state.
+ * @param {PromiseHub<R, E>} promiseHub - The promise hub managing the asynchronous state.
  * 
- * @returns {ReAction<R>} - Returns a function that can be used to trigger the asynchronous action of the promise hub.
+ * @returns {UsePromiseHubAction<R, E>} - A tuple containing:
+ * - The `reAction` function to manually trigger the asynchronous action.
+ * - The current error state (`PromiseHubError<E>`).
+ * - A boolean indicating whether the action is currently loading.
  * 
  * @example
- * // Example usage of `usePromiseHubAction`:
- * const retryAction = usePromiseHubAction(fetchUserDataHub);
+ * // Assuming you have a PromiseHub managing the product list
+ * const [refetchProducts, error, isLoading] = usePromiseHubAction(productListHub);
  * 
- * // Trigger the action manually
- * retryAction().then((newData) => {
- *   console.log('Data updated:', newData);
- * });
+ * return (
+ *   <div>
+ *     <button onClick={refetchProducts} disabled={isLoading}>
+ *       {isLoading ? 'Loading...' : 'Refetch Products'}
+ *     </button>
+ *     {error && <p style={{ color: 'red' }}>Error fetching products: {error.message}</p>}
+ *   </div>
+ * );
+ * 
+ * // The `refetchProducts` action will re-trigger the fetch logic in the `productListHub`.
+ * // While the fetch is ongoing, the button will be disabled and show "Loading...".
+ * // If an error occurs during the fetch, it will be displayed below the button.
  */
-export function usePromiseHubAction<R>(promiseHub: PromiseHub<R>): ReAction<R> {
-    return promiseHub.reAction.bind(promiseHub);
+export function usePromiseHubAction<R, E = Error>(promiseHub: PromiseHub<R>): UsePromiseHubAction<R, E> {
+    const [ state, setState ] = useState<PromiseHubType<R, E>>({
+        currentState: promiseHub.getCurrentState(),
+        pending: promiseHub.getPendingState(),
+        error: promiseHub.getErrorState() as any,
+    });
+
+    useEffect(() => {
+        promiseHub.attachListener(setState as any);
+        
+        return () => {
+            promiseHub.detachListener(setState as any);
+        }
+    }, []);
+
+    return [
+        promiseHub.reAction.bind(promiseHub),
+        state.error,
+        state.pending,
+    ];
 }
