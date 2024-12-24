@@ -109,36 +109,56 @@ setUser(mostRecentSnapshot => {
 
 ### `useBoolean`
 
-`useBoolean` is a custom hook that helps manage boolean states such as toggling between true and false. It provides easy-to-use actions for toggling and setting the value to `true` or `false`.
+`useBoolean` is a custom hook that provides an easy way to manage boolean states. It allows you to toggle the boolean state, set it to `true`, or set it to `false`.
 
 #### API
 
 ```ts
-const [state, actions] = useBoolean(initialState: boolean);
+const [state, actions] = useBoolean(initialValue: boolean);
 ```
 
-- `initialState`: The initial boolean state (`true` or `false`).
+- `initialValue`: The initial value of the boolean state.
 
-#### Example
+#### Examples
+
+##### Basic usage with initial value:
+
+```ts
+const [state, actions] = useBoolean(false);
+```
+
+This initializes the state to `false`.
+
+##### Toggling the state:
 
 ```tsx
-import { useBoolean } from "@d3vtool/hooks";
+const [state, actions] = useBoolean(false);
 
-const ToggleComponent: React.FC = () => {
-    const [state, actions] = useBoolean(false);
-
-    return (
-        <div>
-            <p>The current state is: {state ? "True" : "False"}</p>
-            <button onClick={actions.toggle}>Toggle State</button>
-            <button onClick={() => actions.set(true)}>Set to True</button>
-            <button onClick={() => actions.set(false)}>Set to False</button>
-        </div>
-    );
-};
-
-export default ToggleComponent;
+return (
+  <div>
+    <p>The current state is: {state ? 'True' : 'False'}</p>
+    <button onClick={actions.toggle}>Toggle State</button>
+  </div>
+);
 ```
+
+##### Setting the state to `true` or `false`:
+
+```tsx
+const [state, actions] = useBoolean(false);
+
+return (
+  <div>
+    <button onClick={actions.setTrue}>Set to True</button>
+    <button onClick={actions.setFalse}>Set to False</button>
+  </div>
+);
+```
+
+- **`toggle`**: Flips the current state between `true` and `false`.
+- **`setTrue`**: Sets the state to `true`.
+- **`setFalse`**: Sets the state to `false`.
+
 
 ### `useClickOutside`
 
