@@ -1,4 +1,5 @@
 import { SecId } from "@d3vtool/secid";
+import { useCallback } from "react";
 
 /**
  * A custom hook that generates a function to produce unique string identifiers based on the specified length and character set.
@@ -22,9 +23,9 @@ export function useSecId(
     alphabets?: string,
 ): GenerateAction {
 
-    function generateAction() {
+    const generateAction = useCallback(() => {
         return SecId.generate(length, alphabets);
-    }
+    }, [length, alphabets]);
 
     return generateAction;
 }
