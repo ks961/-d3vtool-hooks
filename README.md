@@ -69,8 +69,6 @@ npm install @d3vtool/hooks
 yarn add @d3vtool/hooks
 ```
 
----
-
 ## Available Hooks
 
 ### `useMState`
