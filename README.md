@@ -51,7 +51,7 @@ A collection of custom React hooks designed to simplify common tasks in your Rea
 - [**useSecId**](#usesecid)
   - `useSecId` is a custom hook that returns a function to generate unique string identifiers with customizable length and character set.
 
-
+---
 
 ## Installation
 
@@ -69,6 +69,7 @@ npm install @d3vtool/hooks
 yarn add @d3vtool/hooks
 ```
 
+---
 
 ## Available Hooks
 
@@ -110,7 +111,7 @@ setUser(mostRecentSnapshot => {
 }, true);
 ```
 
-
+---
 
 ### `useBoolean`
 
@@ -164,7 +165,7 @@ return (
 - **`setTrue`**: Sets the state to `true`.
 - **`setFalse`**: Sets the state to `false`.
 
-
+---
 
 ### `useClickOutside`
 
@@ -203,7 +204,7 @@ const DropdownComponent: React.FC = () => {
 export default DropdownComponent;
 ```
 
-
+---
 
 ### usePersistentState
 
@@ -281,7 +282,7 @@ const SessionComponent: React.FC = () => {
 export default SessionComponent;
 ```
 
-
+---
 
 ### useReadPersistentState
 
@@ -314,7 +315,7 @@ const ReadCounterComponent: React.FC = () => {
 export default ReadCounterComponent;
 ```
 
-
+---
 
 ### createHub
 
@@ -337,7 +338,7 @@ import { createHub } from "@d3vtool/hooks";
 const myHub = createHub({ count: 0 });
 ```
 
-
+---
 
 ### createComputedHub
 
@@ -381,7 +382,7 @@ export function DoubleCounter() {
 }
 ```
 
-
+---
 
 ### useHub
 
@@ -419,7 +420,7 @@ const CounterComponent: React.FC = () => {
 export default CounterComponent;
 ```
 
-
+---
 
 ### useReadHub
 
@@ -452,7 +453,7 @@ const DisplayCounterComponent: React.FC = () => {
 export default DisplayCounterComponent;
 ```
 
-
+---
 
 ### useComputeHub
 
@@ -491,7 +492,7 @@ export default ComputedCounterComponent;
 
 Here’s the usage documentation for the `useStoredHub` hook with the provided example:
 
-
+---
 
 ### useStoredHub
 
@@ -597,7 +598,7 @@ export default function Page2() {
 - `useStoredHub` is used in both `Page1` and `Page2` components with the same key `"counter"`, ensuring that the counter value is shared and synchronized between the two pages or across tabs.
 - The `counter` state is persisted using localStorage and can be incremented or decremented on either page. The updated state is reflected on both pages or in pages opend on different tabs.
 
-
+---
 
 ### `createPromiseHub`
 
@@ -624,7 +625,7 @@ export const fetchUserDataHub = createPromiseHub(undefined, async (prevState) =>
 });
 ```
 
-
+---
 
 ### `usePromiseHub`
 
@@ -660,7 +661,7 @@ const UserProfile: React.FC = () => {
 export default UserProfile;
 ```
 
-
+---
 
 ### `usePromiseReadHub`
 
@@ -694,7 +695,7 @@ const UserProfileReadOnly: React.FC = () => {
 export default UserProfileReadOnly;
 ```
 
-
+---
 
 ### `usePromiseHubAction`
 
@@ -758,7 +759,7 @@ export default ProductList;
 - The `refetchProducts` action in the `ProductList` component triggers the fetch operation, updating the state in the hub.
 - The button becomes disabled with "Loading..." text while the data is being fetched, and any errors encountered during the fetch are displayed below the button.
 
-
+---
 
 ### `useSecId`
 
