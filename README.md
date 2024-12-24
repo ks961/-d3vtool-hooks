@@ -549,7 +549,7 @@ export default function Page2() {
 }
 ```
 
-[useStoredHub_Gif](https://drive.google.com/drive-viewer/AKGpihavaCRO40GmvhCufMZ3dDL-pbjLBJxZT248L-HQJfBk3Mlj6gGDeCzaiglSrV5a33hbhJkc8CptZaIn6OlAxhviq68wNZqiyg=w1920-h1068)
+![useStoredHub_Gif](https://drive.google.com/drive-viewer/AKGpihavaCRO40GmvhCufMZ3dDL-pbjLBJxZT248L-HQJfBk3Mlj6gGDeCzaiglSrV5a33hbhJkc8CptZaIn6OlAxhviq68wNZqiyg=w1920-h1068)
 
 #### How it works:
 - `useStoredHub` is used in both `Page1` and `Page2` components with the same key `"counter"`, ensuring that the counter value is shared and synchronized between the two pages or across tabs.
