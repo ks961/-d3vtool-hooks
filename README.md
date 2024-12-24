@@ -486,7 +486,7 @@ import { useStoredHub } from "@d3vtool/hooks";
 
 export default function Page1() {
 
-    const [count, setCount] = useStoredHub<number>("count", countHub);
+    const [count, setCount] = useStoredHub<number>("counter", countHub);
 
     function handleInc() {
         setCount(prev => prev + 1);
@@ -522,7 +522,7 @@ import { useStoredHub } from "@d3vtool/hooks";
 
 export default function Page2() {
 
-    const [count, setCount] = useStoredHub<number>("count", countHub);
+    const [count, setCount] = useStoredHub<number>("counter", countHub);
 
     function handleInc() {
         setCount(prev => prev + 1);
@@ -549,9 +549,11 @@ export default function Page2() {
 }
 ```
 
+[useStoredHub_Gif](https://drive.google.com/drive-viewer/AKGpihavaCRO40GmvhCufMZ3dDL-pbjLBJxZT248L-HQJfBk3Mlj6gGDeCzaiglSrV5a33hbhJkc8CptZaIn6OlAxhviq68wNZqiyg=w1920-h1068)
+
 #### How it works:
-- `useStoredHub` is used in both `Page1` and `Page2` components with the same key `"count"`, ensuring that the counter value is shared and synchronized between the two pages or across tabs.
-- The `count` state is persisted using localStorage and can be incremented or decremented on either page. The updated state is reflected on both pages or in pages opend on different tabs.
+- `useStoredHub` is used in both `Page1` and `Page2` components with the same key `"counter"`, ensuring that the counter value is shared and synchronized between the two pages or across tabs.
+- The `counter` state is persisted using localStorage and can be incremented or decremented on either page. The updated state is reflected on both pages or in pages opend on different tabs.
 
 
 ### `createPromiseHub`
