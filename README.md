@@ -825,81 +825,128 @@ const [formData, onSubmit, formErrors, setupInputRefs] = useForm<FormSchema>(
 
 ![useForm_Gif](https://raw.githubusercontent.com/ks961/imgs/refs/heads/main/useForm.gif)
 
+Sure! Let's break down this code snippet and explain it step by step, so it's easier to understand for someone who will be consuming this library.
+
+---
+
+#### **1. Import Statements**
 ```tsx
 import { useForm } from "@d3vtool/hooks";
 import { Validator, VInfer, StringUtils } from "@d3vtool/utils";
+```
+- **`useForm`**: A custom hook from the `@d3vtool/hooks` library that provides form handling functionality (like managing form state, validation, and submission).
+- **`Validator`**: A utility from `@d3vtool/utils` for defining validation rules, like `string().email()`.
+- **`StringUtils`**: A utility for string manipulation (in this case, it’s used to convert string keys into a more human-readable format).
 
-// Define form schema
+---
+
+#### **2. Form Schema Definition**
+```tsx
 const schema = Validator.object({
     email: Validator.string().email(),
     password: Validator.string().password(),
 });
 
 type SchemaType = typeof schema;
+```
+- **`Validator.object()`**: Defines the structure of the form data using validation rules. In this case, two fields are defined: `email` and `password`.
+    - **`email`**: A string field that must be a valid email address (`Validator.string().email()`).
+    - **`password`**: A string field with a password validation rule (`Validator.string().password()`).
+- **`SchemaType`**: TypeScript's `typeof` is used to infer the type of the `schema` object, making it easy to reference the form data structure later in the code.
 
-export default function Login() {
+---
 
-// Use the `useForm` hook with the schema and initial data
-    const [
-        formData, onSubmit, 
-        formErrors, setupInputRefs
-    ] = useForm<SchemaType>({
-        email: "",
-        password: "",
-    }, schema);
+#### **3. `Login` Component**
+This is the main React component where the form is rendered and managed.
 
-    async function handleOnSubmit() {
-        // Handle form submission logic (e.g., send data to the server)
-        console.log(formData);
-    }
+##### **State Setup with `useForm`**
+```tsx
+const [
+    formData, onSubmit, 
+    formErrors, setupInputRefs
+] = useForm<SchemaType>({
+    email: "",
+    password: "",
+}, schema);
+```
+- **`useForm`**: This hook is used to manage the form state, validation, and submission process.
+    - **`formData`**: Contains the current values of the form fields (email and password).
+    - **`onSubmit`**: A function that wraps the form submission logic and triggers validation.
+    - **`formErrors`**: An object containing any validation error messages.
+    - **`setupInputRefs`**: A function used to manage and track references to the form inputs (used for accessibility or focus management).
 
-    return (
-        <main style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '2.5rem', marginTop: '3rem', }}>
-            <h1>Login</h1>
-            <form
-                style={{ width: '300px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', }}
-
-                onSubmit={onSubmit(handleOnSubmit)} // Add Submit handler
-            >
-                {
-                    // we can use schema keys for generating our input fields 
-                    Object.keys(formData).map((key, index) => (
-                        
-                        <div key={key} style={{ width: '100%' }}>
-                            
-                            <input
-                                name={key}
-                                placeholder={ StringUtils.toTitleCase(key) }
-                                type={key.includes('password') ? 'password' : 'text'}
-                                ref={(ref: HTMLInputElement) => setupInputRefs(ref, index)}
-
-                                style={{ width: '100%', fontSize: '1rem', padding: '0.4rem', }}
-                            />
-
-                            {
-                                // Display Form Errors
-                                formErrors[key as keyof typeof formErrors] && (
-                                
-                                    <span style={{ color: 'crimson' }}>
-                                        {formErrors[key as keyof typeof formErrors]}
-                                    </span>
-                                
-                                )
-                            }
-                        </div>
-                    ))
-                }
-                <button
-                    type="submit"
-                    title="Login"
-                    style={{ cursor: 'pointer', padding: '0.5rem 0', marginTop: '0.5rem', fontSize: '1rem', width: '100%', }}>
-                    Login
-                </button>
-            </form>
-        </main>
-    );
+##### **Handling Form Submission**
+```tsx
+async function handleOnSubmit() {
+    // Handle form submission logic (e.g., send data to the server)
+    console.log(formData);
 }
 ```
+- **`handleOnSubmit`**: This is the form submission handler. In this case, it just logs the form data (`formData`), but in a real app, you'd likely send this data to a server.
+
+---
+
+#### **4. Form Layout**
+The following code renders the form's structure using `JSX` (React's syntax for HTML-like structures).
+
+```tsx
+<main style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '2.5rem', marginTop: '3rem' }}>
+    <h1>Login</h1>
+    <form
+        style={{ width: '300px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.75rem' }}
+        onSubmit={onSubmit(handleOnSubmit)} // Add Submit handler
+    >
+```
+- The form is styled using inline CSS to center it on the page with a column layout and some spacing.
+- **`onSubmit`**: The form is submitted by calling the `onSubmit` function returned by `useForm`, which will validate the form and then call `handleOnSubmit`.
+
+---
+
+#### **5. Rendering Form Inputs**
+```tsx
+{
+    Object.keys(formData).map((key, index) => (
+        <div key={key} style={{ width: '100%' }}>
+            <input
+                name={key}
+                placeholder={StringUtils.toTitleCase(key)}
+                type={key.includes('password') ? 'password' : 'text'}
+                ref={(ref: HTMLInputElement) => setupInputRefs(ref, index)}
+                style={{ width: '100%', fontSize: '1rem', padding: '0.4rem' }}
+            />
+            {
+                formErrors[key as keyof typeof formErrors] && (
+                    <span style={{ color: 'crimson' }}>
+                        {formErrors[key as keyof typeof formErrors]}
+                    </span>
+                )
+            }
+        </div>
+    ))
+}
+```
+- **Dynamic Input Fields**: This code uses `Object.keys(formData).map()` to loop over each field in `formData` (in this case, `email` and `password`), rendering an `input` element for each one.
+- **`key`**: The field name (`email`, `password`), which is used as the `name` for the input and as part of the `placeholder` text (converted to a human-readable format via `StringUtils.toTitleCase`).
+- **`ref`**: The `setupInputRefs` function is called to associate input fields with their respective references.
+- **Error Messages**: If there are any validation errors for the field, an error message is displayed below the input field. These errors are pulled from `formErrors`.
+
+---
+
+#### **6. Submit Button**
+```tsx
+<button
+    type="submit"
+    title="Login"
+    style={{ cursor: 'pointer', padding: '0.5rem 0', marginTop: '0.5rem', fontSize: '1rem', width: '100%' }}
+>
+    Login
+</button>
+```
+- A simple button to submit the form.
+- The `type="submit"` attribute makes it the form submission button.
+- Basic styling is applied to make the button look clean and usable.
+
+---
 
 #### Key Concepts:
 
