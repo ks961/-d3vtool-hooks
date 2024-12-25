@@ -858,15 +858,7 @@ export default function Login() {
     }
 
     return (
-        <main style={{
-            height: '100%',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '2.5rem',
-            marginTop: '3rem',
-        }}>
+        <main style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '2.5rem', marginTop: '3rem', }}>
             <h1>Login</h1>
             <form
                 style={{
@@ -885,11 +877,7 @@ export default function Login() {
                             <input
                                 name={key}
                                 placeholder={StringUtils.toTitleCase(key)}
-                                style={{
-                                    width: '100%',
-                                    fontSize: '1rem',
-                                    padding: '0.4rem',
-                                }}
+                                style={{ width: '100%', fontSize: '1rem', padding: '0.4rem', }}
                                 type={key.includes('password') ? 'password' : 'text'}
                                 ref={(ref: HTMLInputElement) => setupInputRefs(ref, index)}
                             />
@@ -904,14 +892,7 @@ export default function Login() {
                 <button
                     type="submit"
                     title="Login"
-                    style={{
-                        cursor: 'pointer',
-                        padding: '0.5rem 0',
-                        marginTop: '0.5rem',
-                        fontSize: '1rem',
-                        width: '100%',
-                    }}
-                >
+                    style={{ cursor: 'pointer', padding: '0.5rem 0', marginTop: '0.5rem', fontSize: '1rem', width: '100%', }}>
                     Login
                 </button>
             </form>
