@@ -17,6 +17,22 @@ export type FormError<FormType> = {
 export type SetupInputRefsAction = (ref: HTMLInputElement, index: number) => void;
 
 /**
+ * Type definition for a function that toggles or sets the formData validation state.
+ * This function allows the consumer to explicitly enable or disable formData validation.
+ * 
+ * - If a boolean value is provided (`true` or `false`), it will set the formData validation 
+ *   state to that value.
+ * - If no argument is provided (`undefined`), the formData validation state will be toggled 
+ *   (i.e., if it's currently `true`, it will be set to `false`, and vice versa).
+ * 
+ * @param vState - An optional boolean indicating the desired formData validation state:
+ *   - `true` to enable formData validation.
+ *   - `false` to disable formData validation.
+ *   - `undefined` to toggle the formData validation state based on its current value.
+ */
+export type ToggleErrorValidationAction = (vState?: boolean) => void;
+
+/**
  * Type definition for a form submission action. This function accepts a form event
  * and returns a `Promise` that resolves when the submission process is complete.
  */
@@ -43,7 +59,8 @@ export type UseForm<F> = [
     F,                      // Form state
     SubmitAction,           // Submit action function
     FormError<F>,           // Form errors object
-    SetupInputRefsAction   // Input refs setup action
+    SetupInputRefsAction,   // Input refs setup action
+    ToggleErrorValidationAction,
 ];
 
 /**
@@ -84,11 +101,21 @@ export function useForm<FormSchema extends ObjectValidator<Object>>(
 
     type FormType = VInfer<FormSchema>; 
 
+    const shouldAllowValidation = useRef<boolean>(true);
+
     const formInputsRef = useRef<HTMLInputElement[]>([]);
 
     const formDataRef = useRef<FormType>(defaultFormData);
 
     const [ _, trigger ] = useState<boolean>(false);
+
+    const toggleErrorValidation = useCallback((vState?: boolean) => {
+        if(vState !== undefined) {
+            shouldAllowValidation.current = vState;
+        } else {
+            shouldAllowValidation.current = !shouldAllowValidation.current;
+        }
+    }, []);
 
     const formErrorRef = useRef<FormError<FormType>>(
         Object.keys(defaultFormData).reduce((acc, key) => {
@@ -129,10 +156,12 @@ export function useForm<FormSchema extends ObjectValidator<Object>>(
 
         const errors = formSchema.validateSafely(formDataRef.current);
 
-        if(errors[name]?.length > 0) {
+        ;console.log(shouldAllowValidation.current);
+        
+        if(errors[name]?.length > 0 && shouldAllowValidation.current) {
             (formErrorRef.current as any)[name] = errors[name];
             trigger(prev => !prev);
-        } else if(formErrorRef.current[name as keyof typeof formErrorRef.current].length > 0) {
+        } else if(formErrorRef.current[name as keyof typeof formErrorRef.current].length > 0 && shouldAllowValidation.current) {
             formErrorRef.current[name as keyof typeof formErrorRef.current] = "";
             trigger(prev => !prev);
         }
@@ -141,12 +170,12 @@ export function useForm<FormSchema extends ObjectValidator<Object>>(
     const onSubmit = useCallback((callback: FormMiddlewareAction) => {
         return async function(event: FormEvent) {
             event.preventDefault();
-
+            
             try {
                 formSchema.validate(formDataRef.current);
                 await callback();
             } catch(err: unknown) {
-                if(err instanceof ObjectValidationError) {
+                if(err instanceof ObjectValidationError && shouldAllowValidation.current) {
                     if(err.message?.length > 0) {
                         (formErrorRef.current as any)[err.key] = err.message;
                         trigger(prev => !prev);
@@ -164,5 +193,6 @@ export function useForm<FormSchema extends ObjectValidator<Object>>(
         onSubmit,
         formErrorRef.current,
         setupInputRefs, 
+        toggleErrorValidation,
      ] as const;
 }

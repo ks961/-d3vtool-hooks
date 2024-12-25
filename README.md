@@ -810,7 +810,7 @@ In this example, `useSecId` is used to create two generators:
 #### API
 
 ```ts
-const [formData, onSubmit, formErrors, setupInputRefs] = useForm<FormSchema>(
+const [formData, onSubmit, formErrors, setupInputRefs, toggleErrorValidation] = useForm<FormSchema>(
     initialFormData,
     schema
 );
@@ -863,7 +863,8 @@ This is the main React component where the form is rendered and managed.
 ```tsx
 const [
     formData, onSubmit, 
-    formErrors, setupInputRefs
+    formErrors, setupInputRefs,
+    toggleErrorValidation
 ] = useForm<SchemaType>({
     email: "",
     password: "",
@@ -945,6 +946,17 @@ The following code renders the form's structure using `JSX` (React's syntax for 
 - A simple button to submit the form.
 - The `type="submit"` attribute makes it the form submission button.
 - Basic styling is applied to make the button look clean and usable.
+
+---
+
+#### Optionally control whether formData validation is enabled or disabled [ Defaults: True ]
+
+```tsx
+// To disable formData validation [ when formData state changes not needed ]:
+useEffect(() => {
+    toggleErrorValidation(false); // Omitting the argument will toggle between true and false
+}, []);
+```
 
 ---
 
