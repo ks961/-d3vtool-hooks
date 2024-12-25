@@ -837,20 +837,16 @@ const schema = Validator.object({
 
 type SchemaType = typeof schema;
 
-// Initial form data with default values
-// or you can define it inline with hook
-const initialFormData: VInfer<SchemaType> /* typing optional */ = {
-    email: "",
-    password: "",
-}
-
 export default function Login() {
 
 // Use the `useForm` hook with the schema and initial data
     const [
         formData, onSubmit, 
         formErrors, setupInputRefs
-    ] = useForm<SchemaType>(initialFormData, schema);
+    ] = useForm<SchemaType>({
+        email: "",
+        password: "",
+    }, schema);
 
     async function handleOnSubmit() {
         // Handle form submission logic (e.g., send data to the server)
