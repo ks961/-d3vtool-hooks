@@ -827,7 +827,7 @@ const [formData, onSubmit, formErrors, setupInputRefs] = useForm<FormSchema>(
 
 ```tsx
 import { useForm } from "@d3vtool/hooks";
-import { Validator, VInfer } from "@d3vtool/utils";
+import { Validator, VInfer, StringUtils } from "@d3vtool/utils";
 
 // Define form schema
 const schema = Validator.object({
