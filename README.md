@@ -861,31 +861,34 @@ export default function Login() {
         <main style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '2.5rem', marginTop: '3rem', }}>
             <h1>Login</h1>
             <form
-                style={{
-                    width: '300px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '0.75rem',
-                }}
+                style={{ width: '300px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', }}
+
                 onSubmit={onSubmit(handleOnSubmit)}
             >
                 {
                     Object.keys(formData).map((key, index) => (
+                        
                         <div key={key} style={{ width: '100%' }}>
+                            
                             <input
                                 name={key}
                                 placeholder={StringUtils.toTitleCase(key)}
-                                style={{ width: '100%', fontSize: '1rem', padding: '0.4rem', }}
                                 type={key.includes('password') ? 'password' : 'text'}
                                 ref={(ref: HTMLInputElement) => setupInputRefs(ref, index)}
+
+                                style={{ width: '100%', fontSize: '1rem', padding: '0.4rem', }}
                             />
-                            {formErrors[key as keyof typeof formErrors] && (
-                                <span style={{ color: 'crimson' }}>
-                                    {formErrors[key as keyof typeof formErrors]}
-                                </span>
-                            )}
+
+                            {
+                                formErrors[key as keyof typeof formErrors] && (
+                                
+                                    <span style={{ color: 'crimson' }}>
+                                        {formErrors[key as keyof typeof formErrors]}
+                                    </span>
+                                
+                                )
+                            }
+
                         </div>
                     ))
                 }
