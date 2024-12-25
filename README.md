@@ -863,16 +863,16 @@ export default function Login() {
             <form
                 style={{ width: '300px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', }}
 
-                onSubmit={onSubmit(handleOnSubmit)}
+                onSubmit={onSubmit(handleOnSubmit)} // Add Submit handler
             >
                 {
-                    Object.keys(formData).map((key, index) => (
+                    Object.keys(formData).map((key, index) => ( // we can use schema keys for generating out input fields 
                         
                         <div key={key} style={{ width: '100%' }}>
                             
                             <input
                                 name={key}
-                                placeholder={StringUtils.toTitleCase(key)}
+                                placeholder={ StringUtils.toTitleCase(key) }
                                 type={key.includes('password') ? 'password' : 'text'}
                                 ref={(ref: HTMLInputElement) => setupInputRefs(ref, index)}
 
@@ -880,6 +880,7 @@ export default function Login() {
                             />
 
                             {
+                                // Display Form Errors
                                 formErrors[key as keyof typeof formErrors] && (
                                 
                                     <span style={{ color: 'crimson' }}>
@@ -888,7 +889,6 @@ export default function Login() {
                                 
                                 )
                             }
-
                         </div>
                     ))
                 }
