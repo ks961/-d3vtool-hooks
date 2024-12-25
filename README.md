@@ -51,6 +51,9 @@ A collection of custom React hooks designed to simplify common tasks in your Rea
 - [**useSecId**](#usesecid)
   - `useSecId` is a custom hook that returns a function to generate unique string identifiers with customizable length and character set.
 
+- [**useForm**](#useform)
+  - `useForm` is a custom React hook for managing form state, validation, and asynchronous submission. It optimizes performance by minimizing re-renders, updating the component only on validation errors rather than input changes.
+
 ---
 
 ## Installation
@@ -797,6 +800,140 @@ export default IdGeneratorComponent;
 In this example, `useSecId` is used to create two generators:
 - The first generates a default 8-character ID.
 - The second generates a custom 10-character ID using the characters `"ABC123"`.
+
+---
+
+### `useForm`
+
+`useForm` is a custom React hook for managing form state, handling validation, and submitting forms with asynchronous logic. It provides an efficient way to bind form inputs to a schema, track validation errors, and perform custom submission actions. A notable feature is that it minimizes unnecessary re-renders: the component will only re-render when a validation error occurs, not when the input changes, improving performance.
+
+#### API
+
+```ts
+const [formData, onSubmit, formErrors, setupInputRefs] = useForm<FormSchema>(
+    initialFormData,
+    schema
+);
+```
+
+- `initialFormData`: The form data, which is initialized with `initialFormData` and managed by the hook.
+- `onSubmit`: A function to handle form submission. This function triggers the submission logic and includes form validation.
+- `formErrors`: An object containing error messages for each form field.
+- `setupInputRefs`: A function that sets up input references for each form field, useful for managing focus or handling field-specific logic.
+
+#### Example
+
+![useForm_Gif](https://raw.githubusercontent.com/ks961/imgs/refs/heads/main/useForm.gif)
+
+```tsx
+import { useForm } from "@d3vtool/hooks";
+import { Validator, VInfer } from "@d3vtool/utils";
+
+// Define form schema
+const schema = Validator.object({
+    email: Validator.string().email(),
+    password: Validator.string().password(),
+});
+
+type SchemaType = typeof schema;
+
+// Initial form data with default values
+// or you can define it inline with hook
+const initialFormData: VInfer<SchemaType> /* typing optional */ = {
+    email: "",
+    password: "",
+}
+
+export default function Login() {
+
+// Use the `useForm` hook with the schema and initial data
+    const [
+        formData, onSubmit, 
+        formErrors, setupInputRefs
+    ] = useForm<SchemaType>(initialFormData, schema);
+
+    async function handleOnSubmit() {
+        // Handle form submission logic (e.g., send data to the server)
+        console.log(formData);
+    }
+
+    return (
+        <main style={{
+            height: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '2.5rem',
+            marginTop: '3rem',
+        }}>
+            <h1>Login</h1>
+            <form
+                style={{
+                    width: '300px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '0.75rem',
+                }}
+                onSubmit={onSubmit(handleOnSubmit)}
+            >
+                {
+                    Object.keys(formData).map((key, index) => (
+                        <div key={key} style={{ width: '100%' }}>
+                            <input
+                                name={key}
+                                placeholder={StringUtils.toTitleCase(key)}
+                                style={{
+                                    width: '100%',
+                                    fontSize: '1rem',
+                                    padding: '0.4rem',
+                                }}
+                                type={key.includes('password') ? 'password' : 'text'}
+                                ref={(ref: HTMLInputElement) => setupInputRefs(ref, index)}
+                            />
+                            {formErrors[key as keyof typeof formErrors] && (
+                                <span style={{ color: 'crimson' }}>
+                                    {formErrors[key as keyof typeof formErrors]}
+                                </span>
+                            )}
+                        </div>
+                    ))
+                }
+                <button
+                    type="submit"
+                    title="Login"
+                    style={{
+                        cursor: 'pointer',
+                        padding: '0.5rem 0',
+                        marginTop: '0.5rem',
+                        fontSize: '1rem',
+                        width: '100%',
+                    }}
+                >
+                    Login
+                </button>
+            </form>
+        </main>
+    );
+}
+```
+
+#### Key Concepts:
+
+- **`initialFormData`**: This contains the default values for the form fields. It's typed to match the form schema.
+- **`useForm`**: This hook is used to bind form fields to the schema, track form data, and handle validation.
+- **Form Fields and Validation**: Each input field is rendered with a corresponding validation error message if there is an issue with the field’s data. The validation schema is provided to the hook to ensure the form is valid before submission.
+- **Dynamic Error Messages**: If validation errors are found, they are displayed under the relevant form fields.
+- **Minimized Re-renders**: The component will only re-render when a validation error occurs. This optimization ensures that the form does not re-render with each input change, improving performance in larger forms with many fields.
+
+#### Advantages:
+
+- **Automatic Validation**: The form fields are validated against the provided schema.
+- **Form Submission Handling**: The `onSubmit` function handles form submission, and the form is only submitted if it's valid.
+- **Efficient Re-rendering**: The component only re-renders when a validation error occurs, reducing unnecessary renders and improving performance.
+- **Flexible Schema**: You can define any structure for the form and validation rules, making the hook suitable for various use cases.
 
 
 ### License

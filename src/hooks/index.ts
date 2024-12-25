@@ -15,9 +15,11 @@ import {
     usePromiseHubAction,
 } from "./useHub";
 import { useSecId } from "./useSecId";
+import { useForm } from "./useForm";
 
 export {
     useHub,
+    useForm,
     useSecId,
     createHub,
     useMState,

@@ -12,6 +12,6 @@
     "jsx": "react-jsx",
     "strict": true
   },
-  "include": ["src", "app", "src/hooks"],
+  "include": ["src/pages", "src/hooks"],
   "exclude": ["node_modules"]
 }
