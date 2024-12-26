@@ -824,7 +824,7 @@ const [formData, onSubmit, formErrors, setupInputRefs] = useForm<FormSchema>(
 - `onSubmit`: A function to handle form submission. This function triggers submission logic and includes form validation.
 - `formErrors`: An object containing error messages for each form field.
 - `setupInputRefs`: A function that sets up input references for each form field, useful for managing focus or handling field-specific logic.
-- `enableDelayValidation`: (Optional) A boolean to enable or delay validation until form submission.
+- `enableDelayValidation`: (Optional) A boolean to enable or delay formData validation until input stops.
 
 ---
 
