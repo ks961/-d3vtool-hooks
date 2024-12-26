@@ -1,3 +1,4 @@
+import { useDebounce } from "../useDebounce";
 import { ObjectValidationError, VInfer } from "@d3vtool/utils"
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { ObjectValidator } from "@d3vtool/utils/dist/validator/ObjectValidator";
@@ -60,48 +61,69 @@ export type UseForm<F> = [
     SubmitAction,           // Submit action function
     FormError<F>,           // Form errors object
     SetupInputRefsAction,   // Input refs setup action
-    ToggleErrorValidationAction,
 ];
 
 /**
- * `useForm` is a custom hook that helps with managing form state, form validation,
- * and form submission in React components. It accepts an initial form state and a
- * validation schema, and returns useful handlers for form submission, form errors,
- * and input element references.
+ * `useForm` a custom React hook for managing form state with validation.
+ * 
+ * @template FormSchema - The schema used to validate the form, based on an object validator.
  *
- * @param formData - The initial form data which should match the form schema.
- * @param formSchema - The validation schema for the form data, used to validate fields.
+ * @param defaultFormData - The initial form data object that matches the shape of the form schema.
+ * @param formSchema - The schema used to validate the form fields. This ensures that form values adhere to the schema's validation rules.
+ * @param enableDelayValidation - (Optional) A flag to enable delayed validation. If set to true, validation will only occur after input fields lose focus, rather than on every change. Defaults to `false`.
  *
- * @returns An array with the form data, submit action, form errors, and input refs setup.
+ * @returns A tuple containing:
+ * - `formData`: The current form data as an object that matches the schema shape.
+ * - `onSubmit`: A function to handle form submission. Pass a callback to execute when the form is successfully validated and submitted.
+ * - `formErrors`: An object that contains error messages for each form field, keyed by the field name.
+ * - `setupInputRefs`: A function to set up references to input elements for direct DOM manipulation if necessary.
  *
  * @example
  * const schema = Validator.object({
- *     email: Validator.string().email(),
- *     password: Validator.string().password()
+ *   email: Validator.string().email(),
+ *   password: Validator.string().password(),
  * });
+ *
+ * const [formData, onSubmit, formErrors, setupInputRefs] = useForm({
+ *   email: "",
+ *   password: "",
+ * }, schema, true); // The third parameter is optional. [ Defaults: false ]
+ *
+ * // Setting Third parameter `enableDelayValidation` to `true` will 
+ * // reduce the no. of re-rendering on formData validation error.
  * 
- * type SchemaType = typeof schema;
- * 
- * const [formData, onSubmit, formErrors, setupInputRefs] = useForm<SchemaType>({
- *     email: "",
- *     password: "",
- * }, schema);
- * 
+ * @example
  * const handleOnSubmit = async () => {
- *     const response = await submitForm(formData);
- *     if (response.status === 'success') {
- *         // Handle successful form submission
- *     }
+ *   // Handle form submission logic here
  * };
+ *
+ * <form onSubmit={onSubmit(handleOnSubmit)}>
+ *   <input 
+ *     name="email" 
+ *     value={formData.email}
+ *     ref={ref => setupInputRefs(ref, 0)}
+ *     type="text"
+ *     // other input props
+ *   />
+ *   {formErrors.email && <span>{formErrors.email}</span>}
+ *   <input 
+ *     name="password" 
+ *     value={formData.password}
+ *     ref={ref => setupInputRefs(ref, 1)}
+ *     type="password"
+ *     // other input props
+ *   />
+ *   {formErrors.password && <span>{formErrors.password}</span>}
+ *   <button type="submit">Submit</button>
+ * </form>
  */
 export function useForm<FormSchema extends ObjectValidator<Object>>(
     defaultFormData: VInfer<FormSchema>,
-    formSchema: FormSchema 
+    formSchema: FormSchema,
+    enableDelayValidation: boolean = false
 ): UseForm<VInfer<FormSchema>> {
 
     type FormType = VInfer<FormSchema>; 
-
-    const shouldAllowValidation = useRef<boolean>(true);
 
     const formInputsRef = useRef<HTMLInputElement[]>([]);
 
@@ -109,13 +131,11 @@ export function useForm<FormSchema extends ObjectValidator<Object>>(
 
     const [ _, trigger ] = useState<boolean>(false);
 
-    const toggleErrorValidation = useCallback((vState?: boolean) => {
-        if(vState !== undefined) {
-            shouldAllowValidation.current = vState;
-        } else {
-            shouldAllowValidation.current = !shouldAllowValidation.current;
-        }
+    const memoizedTrigger = useCallback(() => {
+        trigger(prev => !prev);
     }, []);
+
+    const debounce = useDebounce(800, memoizedTrigger);
 
     const formErrorRef = useRef<FormError<FormType>>(
         Object.keys(defaultFormData).reduce((acc, key) => {
@@ -124,15 +144,19 @@ export function useForm<FormSchema extends ObjectValidator<Object>>(
         }, {} as FormError<FormType>)
     );
 
-    const [ formErrors, setFormErrors ] = useState<FormError<FormType>>(() => {
-        return (Object.keys(defaultFormData).reduce((acc, key) => {
-            acc[key as keyof FormError<FormType>] = '';
-            return acc;
-        }, {} as FormError<FormType>));
-    });
 
     function setupInputRefs(ref: HTMLInputElement, index: number) {
         formInputsRef.current[index] = ref;
+    }
+
+    function handleOnFocusOrBlur(event: Event) {
+        const { name } = event.target as HTMLInputElement;
+
+        if(formErrorRef.current[name as keyof FormError<FormType>].length > 0) 
+            return;
+
+        const errors = formSchema.validateSafely(formDataRef.current);
+        handleFormErrors(name, errors);
     }
 
     useEffect(() => {
@@ -141,31 +165,49 @@ export function useForm<FormSchema extends ObjectValidator<Object>>(
             input?.addEventListener("input", handleOnInputChange);           
         });
         
+        formInputsRef.current?.forEach(input => {
+            input?.addEventListener("blur", handleOnFocusOrBlur);
+        });
+        
         return () => {
             formInputsRef.current?.forEach(input => {
                 input?.removeEventListener("input", handleOnInputChange);
+            });
+
+            formInputsRef.current?.forEach(input => {
+                input?.removeEventListener("blur", handleOnFocusOrBlur);
             });
         }
     }, []);
 
 
-    const handleOnInputChange = useCallback((event: Event) => {
+    function handleFormErrors(
+        name: string,
+        errors: Record<string, string[]>,
+    ) {
+        if(errors[name]?.length > 0) {
+            (formErrorRef.current as any)[name] = errors[name];
+            
+            (enableDelayValidation) ?
+                debounce() : trigger(prev => !prev); 
+        } else if(formErrorRef.current[name as keyof typeof formErrorRef.current].length > 0) {
+            formErrorRef.current[name as keyof typeof formErrorRef.current] = "";
+            
+            (enableDelayValidation) ? 
+                debounce() : trigger(prev => !prev); 
+        }
+    }
+
+
+    function handleOnInputChange(event: Event) {
         const { name, value } = event.target as HTMLInputElement;
         
         (formDataRef.current as any)[name] = value;
 
         const errors = formSchema.validateSafely(formDataRef.current);
 
-        ;console.log(shouldAllowValidation.current);
-        
-        if(errors[name]?.length > 0 && shouldAllowValidation.current) {
-            (formErrorRef.current as any)[name] = errors[name];
-            trigger(prev => !prev);
-        } else if(formErrorRef.current[name as keyof typeof formErrorRef.current].length > 0 && shouldAllowValidation.current) {
-            formErrorRef.current[name as keyof typeof formErrorRef.current] = "";
-            trigger(prev => !prev);
-        }
-    }, [formErrors]);
+        handleFormErrors(name, errors);
+    }
 
     const onSubmit = useCallback((callback: FormMiddlewareAction) => {
         return async function(event: FormEvent) {
@@ -175,7 +217,7 @@ export function useForm<FormSchema extends ObjectValidator<Object>>(
                 formSchema.validate(formDataRef.current);
                 await callback();
             } catch(err: unknown) {
-                if(err instanceof ObjectValidationError && shouldAllowValidation.current) {
+                if(err instanceof ObjectValidationError) {
                     if(err.message?.length > 0) {
                         (formErrorRef.current as any)[err.key] = err.message;
                         trigger(prev => !prev);
@@ -193,6 +235,6 @@ export function useForm<FormSchema extends ObjectValidator<Object>>(
         onSubmit,
         formErrorRef.current,
         setupInputRefs, 
-        toggleErrorValidation,
+        // toggleErrorValidation,
      ] as const;
 }

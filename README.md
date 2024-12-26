@@ -54,6 +54,9 @@ A collection of custom React hooks designed to simplify common tasks in your Rea
 - [**useForm**](#useform)
   - `useForm` is a custom React hook for managing form state, validation, and asynchronous submission. It optimizes performance by minimizing re-renders, updating the component only on validation errors rather than input changes.
 
+- [**useDebounce**](#usedebounce)
+  - `useDebounce` is a custom React hook that delays the execution of a function until after a specified delay, reducing unnecessary calls. It's useful for scenarios like search bars, where you want to avoid triggering an action on every keystroke.
+
 ---
 
 ## Installation
@@ -810,37 +813,42 @@ In this example, `useSecId` is used to create two generators:
 #### API
 
 ```ts
-const [formData, onSubmit, formErrors, setupInputRefs, toggleErrorValidation] = useForm<FormSchema>(
+const [formData, onSubmit, formErrors, setupInputRefs] = useForm<FormSchema>(
     initialFormData,
-    schema
+    schema,
+    enableDelayValidation // Optional: delay validation until input stops
 );
 ```
 
-- `initialFormData`: The form data, which is initialized with `initialFormData` and managed by the hook.
-- `onSubmit`: A function to handle form submission. This function triggers the submission logic and includes form validation.
+- `initialFormData`: The form data, initialized with `initialFormData` and managed by the hook.
+- `onSubmit`: A function to handle form submission. This function triggers submission logic and includes form validation.
 - `formErrors`: An object containing error messages for each form field.
 - `setupInputRefs`: A function that sets up input references for each form field, useful for managing focus or handling field-specific logic.
-
-#### Example
-
-![useForm_Gif](https://raw.githubusercontent.com/ks961/imgs/refs/heads/main/useForm.gif)
-
-Sure! Let's break down this code snippet and explain it step by step, so it's easier to understand for someone who will be consuming this library.
+- `enableDelayValidation`: (Optional) A boolean to enable or delay validation until form submission.
 
 ---
 
-#### **1. Import Statements**
+#### Example
+![useForm_Gif](https://raw.githubusercontent.com/ks961/imgs/refs/heads/main/useForm.gif)
+
+---
+
+#### Step 1: **Import Required Libraries**
+
 ```tsx
 import { useForm } from "@d3vtool/hooks";
 import { Validator, VInfer, StringUtils } from "@d3vtool/utils";
 ```
-- **`useForm`**: A custom hook from the `@d3vtool/hooks` library that provides form handling functionality (like managing form state, validation, and submission).
-- **`Validator`**: A utility from `@d3vtool/utils` for defining validation rules, like `string().email()`.
-- **`StringUtils`**: A utility for string manipulation (in this case, it’s used to convert string keys into a more human-readable format).
+
+- **`useForm`**: The main hook from the `@d3vtool/hooks` package that handles form state, validation, and submission.
+- **`Validator`**: A utility from `@d3vtool/utils` for defining form validation rules.
+- **`VInfer`**: A TypeScript helper to infer the type from a validation schema.
+- **`StringUtils`**: A utility for manipulating strings, like transforming keys into a readable format (used later for field placeholders).
 
 ---
 
-#### **2. Form Schema Definition**
+#### Step 2: **Define the Form Schema**
+
 ```tsx
 const schema = Validator.object({
     email: Validator.string().email(),
@@ -849,61 +857,77 @@ const schema = Validator.object({
 
 type SchemaType = typeof schema;
 ```
-- **`Validator.object()`**: Defines the structure of the form data using validation rules. In this case, two fields are defined: `email` and `password`.
-    - **`email`**: A string field that must be a valid email address (`Validator.string().email()`).
-    - **`password`**: A string field with a password validation rule (`Validator.string().password()`).
-- **`SchemaType`**: TypeScript's `typeof` is used to infer the type of the `schema` object, making it easy to reference the form data structure later in the code.
+
+- **`schema`**: Defines the validation rules for the form using the `Validator.object` method. It includes:
+  - `email`: Must be a valid email string.
+  - `password`: Must follow password rules (defined by `Validator.string().password()`).
+- **`SchemaType`**: A TypeScript type generated from the `schema`, allowing us to infer the shape of the form data.
 
 ---
 
-#### **3. `Login` Component**
-This is the main React component where the form is rendered and managed.
+#### Step 3: **Initialize Form Data**
 
-##### **State Setup with `useForm`**
+```tsx
+// or you can define it inline within hook, where
+// you don't have to make use of `VInfer`.
+const initialFormData: VInfer<SchemaType> = {
+    email: "",
+    password: "",
+};
+```
+
+- **`initialFormData`**: Provides the initial state for the form fields (both `email` and `password` are empty strings by default). This state is tied to the schema using `VInfer` to ensure type safety.
+
+---
+
+#### Step 4: **Using `useForm` Hook in the Component**
+
 ```tsx
 const [
     formData, onSubmit, 
-    formErrors, setupInputRefs,
-    toggleErrorValidation
-] = useForm<SchemaType>({
-    email: "",
-    password: "",
-}, schema);
+    formErrors, setupInputRefs
+] = useForm<SchemaType>(initialFormData, schema, true); // `true` enables delayed validation
 ```
-- **`useForm`**: This hook is used to manage the form state, validation, and submission process.
-    - **`formData`**: Contains the current values of the form fields (email and password).
-    - **`onSubmit`**: A function that wraps the form submission logic and triggers validation.
-    - **`formErrors`**: An object containing any validation error messages.
-    - **`setupInputRefs`**: A function used to manage and track references to the form inputs (used for accessibility or focus management).
 
-##### **Handling Form Submission**
+- **`formData`**: Holds the current values of the form fields (`email` and `password`).
+- **`onSubmit`**: Handles form submission logic and triggers validation.
+- **`formErrors`**: Contains validation error messages for form fields, if any exist.
+- **`setupInputRefs`**: A helper function to manage references to input fields, useful for things like auto-focus or scroll into view.
+- **`true`**: The third argument enables delayed validation, meaning validation is triggered only when attempting to submit.
+
+---
+
+#### Step 5: **Handling Form Submission**
+
 ```tsx
 async function handleOnSubmit() {
     // Handle form submission logic (e.g., send data to the server)
     console.log(formData);
 }
 ```
-- **`handleOnSubmit`**: This is the form submission handler. In this case, it just logs the form data (`formData`), but in a real app, you'd likely send this data to a server.
+
+- **`handleOnSubmit`**: This function is called when the form is submitted. It logs the current form data but can be modified to perform any necessary actions like sending data to a server.
 
 ---
 
-#### **4. Form Layout**
-The following code renders the form's structure using `JSX` (React's syntax for HTML-like structures).
+#### Step 6: **Render the Form**
 
 ```tsx
 <main style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '2.5rem', marginTop: '3rem' }}>
     <h1>Login</h1>
     <form
         style={{ width: '300px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.75rem' }}
-        onSubmit={onSubmit(handleOnSubmit)} // Add Submit handler
+        onSubmit={onSubmit(handleOnSubmit)}
     >
 ```
-- The form is styled using inline CSS to center it on the page with a column layout and some spacing.
-- **`onSubmit`**: The form is submitted by calling the `onSubmit` function returned by `useForm`, which will validate the form and then call `handleOnSubmit`.
+
+- **Form structure**: The form is styled with flexbox to center it vertically and horizontally on the page. 
+- **`onSubmit`**: When the form is submitted, `onSubmit` is called, triggering the validation and submission logic.
 
 ---
 
-#### **5. Rendering Form Inputs**
+#### Step 7: **Rendering Form Inputs Dynamically**
+
 ```tsx
 {
     Object.keys(formData).map((key, index) => (
@@ -926,14 +950,17 @@ The following code renders the form's structure using `JSX` (React's syntax for 
     ))
 }
 ```
-- **Dynamic Input Fields**: This code uses `Object.keys(formData).map()` to loop over each field in `formData` (in this case, `email` and `password`), rendering an `input` element for each one.
-- **`key`**: The field name (`email`, `password`), which is used as the `name` for the input and as part of the `placeholder` text (converted to a human-readable format via `StringUtils.toTitleCase`).
-- **`ref`**: The `setupInputRefs` function is called to associate input fields with their respective references.
-- **Error Messages**: If there are any validation errors for the field, an error message is displayed below the input field. These errors are pulled from `formErrors`.
+
+- **Dynamic input fields**: The form fields (`email` and `password`) are rendered dynamically using `Object.keys(formData)`. For each field:
+  - The `input` field is created with the proper name and placeholder.
+  - **Type**: If the field is for `password`, the `input` type is set to `"password"`, otherwise, it's a text field.
+  - **Error messages**: If there are validation errors for a field, an error message is displayed below the corresponding input.
+  - **`setupInputRefs`**: Associates input fields with their references for better management.
 
 ---
 
-#### **6. Submit Button**
+#### Step 8: **Form Submission Button**
+
 ```tsx
 <button
     type="submit"
@@ -943,38 +970,71 @@ The following code renders the form's structure using `JSX` (React's syntax for 
     Login
 </button>
 ```
-- A simple button to submit the form.
-- The `type="submit"` attribute makes it the form submission button.
-- Basic styling is applied to make the button look clean and usable.
+
+#### Advantages
+
+1. **Automatic Validation**: Validation is seamlessly integrated with the form state. You define a schema, and the hook automatically handles the validation of form data against it.
+
+2. **Minimized Re-renders**: The component only re-renders when there is a validation error, significantly improving performance, especially for larger forms.
+
+
+4. **Error Handling**: The hook provides a simple way to display validation errors for each field. You can easily bind error messages to form inputs, improving the user experience.
+
+5. **Custom Submission Handling**: The `onSubmit` function allows you to add any custom logic on form submission, making it highly flexible for various use cases like API requests or complex business logic.
+
+6. **Delay Validation Option**: With the option to enable or disable delayed validation, you have control over when validation occurs—on every input change or only during submission.
+
+8. **Clean and Simple API**: The hook returns an intuitive array structure with form state, submission handler, error object, and input reference setup function, making it easy to integrate into any React form component.
 
 ---
 
-#### Optionally control whether formData validation is enabled or disabled [ Defaults: True ]
+### `useDebounce`
 
-```tsx
-// To disable formData validation [ when formData state changes not needed ]:
-useEffect(() => {
-    toggleErrorValidation(false); // Omitting the argument will toggle between true and false
-}, []);
+`useDebounce` is a custom React hook that delays the execution of a provided function until after a specified delay time has passed since the last time the function was invoked. This is especially useful for scenarios like handling user input (e.g., search bar) where you want to avoid triggering an action on every keystroke.
+
+#### API
+
+```ts
+const debounce = useDebounce(delay: ms, debounceAction: DebounceAction): VoidFunction;
 ```
 
----
+- **`delay`**: The debounce delay in milliseconds (`ms`). This defines how long to wait after the last invocation before calling the `debounceAction`.
+- **`debounceAction`**: The action or function that you want to debounce. It will only be executed after the specified delay period.
 
-#### Key Concepts:
+#### Example Usage
 
-- **`initialFormData`**: This contains the default values for the form fields. It's typed to match the form schema.
-- **`useForm`**: This hook is used to bind form fields to the schema, track form data, and handle validation.
-- **Form Fields and Validation**: Each input field is rendered with a corresponding validation error message if there is an issue with the field’s data. The validation schema is provided to the hook to ensure the form is valid before submission.
-- **Dynamic Error Messages**: If validation errors are found, they are displayed under the relevant form fields.
-- **Minimized Re-renders**: The component will only re-render when a validation error occurs. This optimization ensures that the form does not re-render with each input change, improving performance in larger forms with many fields.
+```tsx
+import React, { useCallback } from 'react';
+import { useDebounce } from '@d3vtool/hooks';
 
-#### Advantages:
+export default function Search() {
 
-- **Automatic Validation**: The form fields are validated against the provided schema.
-- **Form Submission Handling**: The `onSubmit` function handles form submission, and the form is only submitted if it's valid.
-- **Efficient Re-rendering**: The component only re-renders when a validation error occurs, reducing unnecessary renders and improving performance.
-- **Flexible Schema**: You can define any structure for the form and validation rules, making the hook suitable for various use cases.
+// Memoize the trigger function
+    const memoizedTrigger = useCallback(() => {
+        console.log("Searching...");
+        // Your search logic here
+    }, []);
 
+    // Use the useDebounce hook to delay the trigger function
+    const debounce = useDebounce(800, memoizedTrigger);
+
+    return (
+        <div>
+            <input
+                type="text"
+                placeholder="Search..."
+                onChange={debounce} // Debounced onChange handler
+            />
+        </div>
+    );
+}
+```
+
+#### Why Use `useDebounce`?
+
+- **Performance Optimization**: Prevents unnecessary function executions during frequent events (like typing) by waiting until the user stops interacting for a predefined period.
+- **Customizable Delay**: You can adjust the delay time to suit your use case, giving you more control over how quickly the action should be triggered.
+- **Easy Integration**: Works seamlessly with any function or event handler, making it easy to implement debouncing in forms, search bars, or other interactive UI elements.
 
 ### License
 
