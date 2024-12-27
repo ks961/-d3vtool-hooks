@@ -1,9 +1,10 @@
+import { ExtractEventListeners } from "./utils";
 import { ObjectValidationError, VInfer } from "@d3vtool/utils"
-import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
+import React, { FormEvent, useCallback, useMemo, useRef, useState } from "react";
 import { ObjectValidator } from "@d3vtool/utils/dist/validator/ObjectValidator";
 
 /**
- * Type definition for form errors, where each key in the `FormType`
+ * Type definition for form errors, where each key in the FormType
  * corresponds to a string representing the error message for that field.
  */
 export type FormError<FormType> = {
@@ -11,38 +12,16 @@ export type FormError<FormType> = {
 };
 
 /**
- * Type definition for the function that sets up input element references.
- * This function is called with a reference to an input element and its index.
- */
-export type SetupInputRefsAction = (ref: HTMLInputElement, index: number) => void;
-
-/**
- * Type definition for a function that toggles or sets the formData validation state.
- * This function allows the consumer to explicitly enable or disable formData validation.
- * 
- * - If a boolean value is provided (`true` or `false`), it will set the formData validation 
- *   state to that value.
- * - If no argument is provided (`undefined`), the formData validation state will be toggled 
- *   (i.e., if it's currently `true`, it will be set to `false`, and vice versa).
- * 
- * @param vState - An optional boolean indicating the desired formData validation state:
- *   - `true` to enable formData validation.
- *   - `false` to disable formData validation.
- *   - `undefined` to toggle the formData validation state based on its current value.
- */
-export type ToggleErrorValidationAction = (vState?: boolean) => void;
-
-/**
  * Type definition for a form submission action. This function accepts a form event
- * and returns a `Promise` that resolves when the submission process is complete.
+ * and returns a Promise that resolves when the submission process is complete.
  */
 export type FormAction = (event: FormEvent) => Promise<void>;
 
 /**
  * Type definition for a middleware action in the form submission process.
- * This function returns a `Promise` that resolves when the middleware logic is complete.
+ * This function returns a Promise that resolves when the middleware logic is complete.
  */
-export type FormMiddlewareAction = () => Promise<void>;
+export type FormMiddlewareAction = () => void | Promise<void>;
 
 /**
  * Type definition for a submit action that triggers a form submission and
@@ -50,31 +29,42 @@ export type FormMiddlewareAction = () => Promise<void>;
  */
 export type SubmitAction = (callback: FormMiddlewareAction) => FormAction;
 
-/**
- * Type definition for the hook that provides the form state (`F`),
- * the form submission handler (`SubmitAction`), form error handling (`FormError`),
- * and the input reference setup action (`SetupInputRefsAction`).
- */
-export type UseForm<F> = [
-    F,                      // Form state
-    SubmitAction,           // Submit action function
-    FormError<F>,           // Form errors object
-    SetupInputRefsAction,   // Input refs setup action
-];
+export type SetFormDataAction<F> = 
+    (key: keyof F, data: F[keyof F]) => void;
+    
+export type GetFormDataAction<F> = (key: keyof F) => F[keyof F];
 
 /**
- * `useForm` is a custom React hook for managing form state with validation.
+ * Type definition for the hook that provides the form state (F),
+ * the form submission handler (SubmitAction), form error handling (FormError),
+ * and the input reference setup action (SetupInputRefsAction).
+ */
+export type UseForm<F> = {
+    formData: F,                      // Form state
+    onSubmit: SubmitAction,           // Submit action function
+    formErrors: FormError<F>,         // Form errors object
+    setFormData: SetFormDataAction<F>,  // Function to set specific form data
+    getFormData: GetFormDataAction<F>,  // Function to get specific form data
+    listeners: ExtractEventListeners<HTMLInputElement>;  // Event listeners for inputs
+}
+
+/**
+ * useForm is a custom React hook for managing form state with validation. It provides
+ * an efficient way to handle form input values, perform validation based on a schema, and
+ * manage errors and submission logic.
  *
  * @template FormSchema - The schema used to validate the form, based on an object validator.
  *
  * @param defaultFormData - The initial form data object that matches the shape of the form schema.
  * @param formSchema - The schema used to validate the form fields. This ensures that form values adhere to the schema's validation rules.
  *
- * @returns A tuple containing:
- * - `formData`: The current form data as an object that matches the schema shape.
- * - `onSubmit`: A function to handle form submission. Pass a callback to execute when the form is successfully validated and submitted.
- * - `formErrors`: An object that contains error messages for each form field, keyed by the field name.
- * - `setupInputRefs`: A function to set up references to input elements for direct DOM manipulation if necessary.
+ * @returns An object containing:
+ * - formData: The current form data as an object that matches the schema shape.
+ * - onSubmit: A function to handle form submission. Pass a callback to execute when the form is successfully validated and submitted.
+ * - formErrors: An object that contains error messages for each form field, keyed by the field name.
+ * - setFormData: A function that allows you to set the form data for a specific field.
+ * - getFormData: A function that allows you to retrieve the form data for a specific field.
+ * - listeners: Event listeners to be passed to the input fields for handling user interactions.
  *
  * @example
  * const schema = Validator.object({
@@ -82,7 +72,9 @@ export type UseForm<F> = [
  *   password: Validator.string().password(),
  * });
  *
- * const [formData, onSubmit, formErrors, setupInputRefs] = useForm({
+ * const {
+ *   formData, onSubmit, formErrors, setFormData, listeners
+ * } = useForm({
  *   email: "",
  *   password: "",
  * }, schema);
@@ -94,23 +86,24 @@ export type UseForm<F> = [
  *
  * <form onSubmit={onSubmit(handleOnSubmit)}>
  *   <input 
- *     name="email" 
- *     value={formData.email}
- *     ref={ref => setupInputRefs(ref, 0)}
+ *     name="email" // name should be same as in schema key
+ *     {...listeners}  // Attach listeners here
  *     type="text"
- *     // other input props
  *   />
  *   {formErrors.email && <span>{formErrors.email}</span>}
+ *   
  *   <input 
- *     name="password" 
- *     value={formData.password}
- *     ref={ref => setupInputRefs(ref, 1)}
+ *     name="password" // name should be same as in schema key
+ *     {...listeners}  // Attach listeners here
  *     type="password"
- *     // other input props
  *   />
  *   {formErrors.password && <span>{formErrors.password}</span>}
+ *   
  *   <button type="submit">Submit</button>
  * </form>
+ *
+ * // Access individual form data
+ * const email = getFormData('email');
  */
 export function useForm<FormSchema extends ObjectValidator<Object>>(
     defaultFormData: VInfer<FormSchema>,
@@ -118,8 +111,6 @@ export function useForm<FormSchema extends ObjectValidator<Object>>(
 ): UseForm<VInfer<FormSchema>> {
 
     type FormType = VInfer<FormSchema>; 
-
-    const formInputsRef = useRef<HTMLInputElement[]>([]);
 
     const formDataRef = useRef<FormType>(defaultFormData);
 
@@ -132,12 +123,9 @@ export function useForm<FormSchema extends ObjectValidator<Object>>(
         }, {} as FormError<FormType>)
     );
 
+    function handleOnBlur(event: React.FocusEvent<HTMLInputElement>) {
+        if(event.type === "focus") return;
 
-    function setupInputRefs(ref: HTMLInputElement, index: number) {
-        formInputsRef.current[index] = ref;
-    }
-
-    function handleOnFocusOrBlur(event: Event) {
         const { name } = event.target as HTMLInputElement;
 
         if(formErrorRef.current[name as keyof FormError<FormType>].length > 0) 
@@ -146,28 +134,6 @@ export function useForm<FormSchema extends ObjectValidator<Object>>(
         const errors = formSchema.validateSafely(formDataRef.current);
         handleFormErrors(name, errors);
     }
-
-    useEffect(() => {
-        
-        formInputsRef.current?.forEach(input => {
-            input?.addEventListener("input", handleOnInputChange);           
-        });
-        
-        formInputsRef.current?.forEach(input => {
-            input?.addEventListener("blur", handleOnFocusOrBlur);
-        });
-        
-        return () => {
-            formInputsRef.current?.forEach(input => {
-                input?.removeEventListener("input", handleOnInputChange);
-            });
-
-            formInputsRef.current?.forEach(input => {
-                input?.removeEventListener("blur", handleOnFocusOrBlur);
-            });
-        }
-    }, []);
-
 
     function handleFormErrors(
         name: string,
@@ -184,7 +150,6 @@ export function useForm<FormSchema extends ObjectValidator<Object>>(
             trigger(prev => !prev); 
         }
     }
-
 
     function handleOnInputChange(event: Event) {
         const { name, value } = event.target as HTMLInputElement;
@@ -216,11 +181,39 @@ export function useForm<FormSchema extends ObjectValidator<Object>>(
             }
         }
     }, []);
+
+    const setFormData = useCallback((key: keyof FormType, data: FormType[keyof FormType]) => {
+        formDataRef.current[key] = data;
+        
+        const errors = formSchema.validateSafely(formDataRef.current);
+        handleFormErrors(key as string, errors);
+    }, []); 
+
+    const getFormData = useCallback((key: keyof FormType): FormType[keyof FormType] => {
+        return formDataRef.current[key];
+    }, []);
+
+    function handleOnChange(event: React.ChangeEvent<HTMLInputElement>) {
+        const { name, value } = event.target;
+        
+        (formDataRef.current as any)[name] = value;
+
+        const errors = formSchema.validateSafely(formDataRef.current);
+
+        handleFormErrors(name, errors);
+    }
+
+    const listeners: ExtractEventListeners<HTMLInputElement> = useMemo(() => ({
+        onChange: handleOnChange,
+        onBlur: handleOnBlur,
+    }), [formSchema]);
     
-    return [
-        formDataRef.current, 
-        onSubmit,
-        formErrorRef.current,
-        setupInputRefs, 
-     ] as const;
+    return {
+        listeners,
+        formData: formDataRef.current, 
+        onSubmit: onSubmit,
+        formErrors: formErrorRef.current,
+        getFormData,
+        setFormData
+     } as const;
 }

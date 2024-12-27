@@ -806,10 +806,6 @@ In this example, `useSecId` is used to create two generators:
 
 ---
 
-Here is the updated README.md with the revised example usage for the `useForm` hook:
-
----
-
 ### `useForm`
 
 `useForm` is a custom React hook for managing form state, handling validation, and submitting forms with asynchronous logic. It provides an efficient way to bind form inputs to a schema, track validation errors, and perform custom submission actions. A notable feature is that it minimizes unnecessary re-renders: the component will only re-render when a validation error occurs, not when the input changes, improving performance.
@@ -817,16 +813,18 @@ Here is the updated README.md with the revised example usage for the `useForm` h
 #### API
 
 ```ts
-const [formData, onSubmit, formErrors, setupInputRefs] = useForm<FormSchema>(
-    initialFormData,
-    schema
-);
+const {
+    formData, 
+    onSubmit, 
+    formErrors, 
+    listeners
+} = useForm<FormSchema>(initialFormData, schema);
 ```
 
-- `initialFormData`: The form data, initialized with `initialFormData` and managed by the hook.
-- `onSubmit`: A function to handle form submission. This function triggers submission logic and includes form validation.
-- `formErrors`: An object containing error messages for each form field.
-- `setupInputRefs`: A function that sets up input references for each form field, useful for managing focus or handling field-specific logic.
+- **`formData`**: An object containing the current values of the form fields, tied to the schema.
+- **`onSubmit`**: A function to handle form submission. It triggers submission logic and includes form validation.
+- **`formErrors`**: An object containing error messages for each form field.
+- **`listeners`**: Event listeners to be spread onto form inputs, containing handlers like `onChange`, `onBlur`, etc., for each field.
 
 ---
 
@@ -859,6 +857,7 @@ const schema = Validator.object({
 });
 
 type SchemaType = typeof schema;
+type FormSchema = VInfer<SchemaType>;
 ```
 
 - **`schema`**: Defines the validation rules for the form using the `Validator.object` method. It includes:
@@ -876,7 +875,7 @@ type SchemaType = typeof schema;
  * This way, there's no need to use `VInfer` as it will automatically 
  * infer the type.
 */
-const initialFormData: VInfer<SchemaType> = {
+const initialFormData: FormSchema = {
     email: "",
     password: "",
 };
@@ -889,16 +888,16 @@ const initialFormData: VInfer<SchemaType> = {
 #### Step 4: **Using `useForm` Hook in the Component**
 
 ```tsx
-const [
+const {
     formData, onSubmit,
-    formErrors, setupInputRefs
-] = useForm<SchemaType>(initialFormData, schema);
+    formErrors, listeners
+} = useForm<SchemaType>(initialFormData, schema);
 ```
 
 - **`formData`**: Holds the current values of the form fields (`email` and `password`).
 - **`onSubmit`**: Handles form submission logic and triggers validation.
 - **`formErrors`**: Contains validation error messages for form fields, if any exist.
-- **`setupInputRefs`**: A helper function to manage references to input fields, useful for things like auto-focus or scroll into view.
+- **`listeners`**: An object that contains event listeners for input elements (e.g., `onChange`, `onBlur`, etc.).
 
 ---
 
@@ -926,8 +925,7 @@ async function handleOnSubmit() {
     >
 ```
 
-- **Form structure**: The form is styled with flexbox to center it vertically and horizontally on the page. 
-- **`onSubmit`**: When the form is submitted, `onSubmit` is called, triggering the validation and submission logic.
+- **`onSubmit`**: When the form is submitted, `onSubmit` is called, triggering the validation and then it will callback the submission logic.
 
 ---
 
@@ -935,13 +933,13 @@ async function handleOnSubmit() {
 
 ```tsx
 {
-    Object.keys(formData).map((key, index) => (
+    Object.keys(formData).map((key) => (
         <div key={key} style={{ width: '100%' }}>
             <input
-                name={key}
+                name={key} // `name` should be the same as `schema key`
                 placeholder={StringUtils.toTitleCase(key)}
                 type={key.includes('password') ? 'password' : 'text'}
-                ref={(ref: HTMLInputElement) => setupInputRefs(ref, index)}
+                {...listeners}  // Spread the input listeners here
                 style={{ width: '100%', fontSize: '1rem', padding: '0.4rem' }}
             />
             {
@@ -960,7 +958,7 @@ async function handleOnSubmit() {
   - The `input` field is created with the proper name and placeholder.
   - **Type**: If the field is for `password`, the `input` type is set to `"password"`, otherwise, it's a text field.
   - **Error messages**: If there are validation errors for a field, an error message is displayed below the corresponding input.
-  - **`setupInputRefs`**: Associates input fields with their references for better management.
+  - **`listeners`**: The event listeners for each input are spread dynamically from `{...listeners}`.
 
 ---
 
@@ -984,7 +982,7 @@ async function handleOnSubmit() {
 2. **Minimized Re-renders**: The component only re-renders when there is a validation error, significantly improving performance, especially for larger forms.
 3. **Error Handling**: The hook provides a simple way to display validation errors for each field. You can easily bind error messages to form inputs, improving the user experience.
 4. **Custom Submission Handling**: The `onSubmit` function allows you to add any custom logic on form submission, making it highly flexible for various use cases like API requests or complex business logic.
-5. **Clean and Simple API**: The hook returns an intuitive array structure with form state, submission handler, error object, and input reference setup function, making it easy to integrate into any React form component.
+5. **Clean and Simple API**: The hook returns an intuitive object structure with form state, submission handler, error object, and input listeners, making it easy to integrate into any React form component.
 
 ---
 
