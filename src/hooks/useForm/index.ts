@@ -70,7 +70,7 @@ export type UseForm<F> = [
  *
  * @param defaultFormData - The initial form data object that matches the shape of the form schema.
  * @param formSchema - The schema used to validate the form fields. This ensures that form values adhere to the schema's validation rules.
- * @param enableDelayValidation - (Optional) A flag to enable delayed validation. If set to true, validation will only occur after input fields lose focus, rather than on every change. Defaults to `false`.
+ * @param lazyValidation - (Optional) A flag to enable lazy formData validation. If set to true, validation will only occur after input stops, rather than on every change. Defaults to `false`.
  *
  * @returns A tuple containing:
  * - `formData`: The current form data as an object that matches the schema shape.
@@ -89,7 +89,7 @@ export type UseForm<F> = [
  *   password: "",
  * }, schema, true); // The third parameter is optional. [ Defaults: false ]
  *
- * // Setting Third parameter `enableDelayValidation` to `true` will 
+ * // Setting Third parameter `lazyValidation` to `true` will 
  * // reduce the no. of re-rendering on formData validation error.
  * 
  * @example
@@ -120,7 +120,7 @@ export type UseForm<F> = [
 export function useForm<FormSchema extends ObjectValidator<Object>>(
     defaultFormData: VInfer<FormSchema>,
     formSchema: FormSchema,
-    enableDelayValidation: boolean = false
+    lazyValidation: boolean = false
 ): UseForm<VInfer<FormSchema>> {
 
     type FormType = VInfer<FormSchema>; 
@@ -188,12 +188,12 @@ export function useForm<FormSchema extends ObjectValidator<Object>>(
         if(errors[name]?.length > 0) {
             (formErrorRef.current as any)[name] = errors[name];
             
-            (enableDelayValidation) ?
+            (lazyValidation) ?
                 debounce() : trigger(prev => !prev); 
         } else if(formErrorRef.current[name as keyof typeof formErrorRef.current].length > 0) {
             formErrorRef.current[name as keyof typeof formErrorRef.current] = "";
             
-            (enableDelayValidation) ? 
+            (lazyValidation) ? 
                 debounce() : trigger(prev => !prev); 
         }
     }
@@ -235,6 +235,5 @@ export function useForm<FormSchema extends ObjectValidator<Object>>(
         onSubmit,
         formErrorRef.current,
         setupInputRefs, 
-        // toggleErrorValidation,
      ] as const;
 }
