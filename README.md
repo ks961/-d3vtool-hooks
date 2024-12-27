@@ -832,7 +832,7 @@ const [formData, onSubmit, formErrors, setupInputRefs] = useForm<FormSchema>(
 
 #### Example
 
-[!useForm_Gif](https://raw.githubusercontent.com/ks961/imgs/refs/heads/main/useForm.gif)
+![useForm_Gif](https://raw.githubusercontent.com/ks961/imgs/refs/heads/main/useForm.gif)
 
 ---
 
