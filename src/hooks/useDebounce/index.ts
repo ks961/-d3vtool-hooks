@@ -29,7 +29,7 @@ export function useDebounce(
     const timeoutRef = useRef<NodeJS.Timeout>();
     
     const debounce = useCallback(() => {
-        clearTimeout(timeoutRef.current)
+        clearTimeout(timeoutRef.current);
         
         timeoutRef.current = setTimeout(debounceAction, delay);
     }, [delay, debounceAction]);

@@ -1,7 +1,8 @@
 import { ExtractEventListeners } from "./utils";
 import { ObjectValidationError, VInfer } from "@d3vtool/utils"
-import React, { FormEvent, useCallback, useMemo, useRef, useState } from "react";
+import React, { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ObjectValidator } from "@d3vtool/utils/dist/validator/ObjectValidator";
+import { useDebounce } from "../useDebounce";
 
 /**
  * Type definition for form errors, where each key in the FormType
@@ -114,6 +115,28 @@ export function useForm<FormSchema extends ObjectValidator<Object>>(
 
     const formDataRef = useRef<FormType>(defaultFormData);
 
+    type InputRefMap = Record<string, HTMLInputElement>;
+    const inputRefs = useRef<InputRefMap>({}); 
+
+    const scheduledStateUpdatesRef = useRef<VoidFunction[]>([]);
+
+    const batchStateUpdates = useCallback(() => {
+        for(let i = 0; i < scheduledStateUpdatesRef.current.length; ++i) {
+            scheduledStateUpdatesRef.current[i]();
+        }
+
+        const errors = formSchema.validateSafely(formDataRef.current);
+        
+        for(const errorKey in errors) {
+            formErrorRef.current[errorKey as keyof typeof formDataRef.current] = errors[errorKey][0];
+        }
+
+        trigger(prev => !prev);
+        scheduledStateUpdatesRef.current = [];
+    }, []);
+    
+    const debounceStateUpdate = useDebounce(300, batchStateUpdates);
+
     const [ _, trigger ] = useState<boolean>(false);
 
     const formErrorRef = useRef<FormError<FormType>>(
@@ -183,17 +206,18 @@ export function useForm<FormSchema extends ObjectValidator<Object>>(
     }, []);
 
     const setFormData = useCallback((key: keyof FormType, data: FormType[keyof FormType]) => {
-        formDataRef.current[key] = data;
-        
-        const errors = formSchema.validateSafely(formDataRef.current);
-        handleFormErrors(key as string, errors);
-    }, []); 
+        debounceStateUpdate();
+        scheduledStateUpdatesRef.current.push(() => {
+            inputRefs.current[key as string].value = data as string;
+            formDataRef.current[key] = data;
+        });
+    }, [formSchema]); 
 
     const getFormData = useCallback((key: keyof FormType): FormType[keyof FormType] => {
         return formDataRef.current[key];
-    }, []);
+    }, [formSchema]);
 
-    function handleOnChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const handleOnChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = event.target;
         
         (formDataRef.current as any)[name] = value;
@@ -201,11 +225,18 @@ export function useForm<FormSchema extends ObjectValidator<Object>>(
         const errors = formSchema.validateSafely(formDataRef.current);
 
         handleFormErrors(name, errors);
-    }
+    }, [formSchema]);
 
-    const listeners: ExtractEventListeners<HTMLInputElement> = useMemo(() => ({
+
+    const handleRef = useCallback((ref: HTMLInputElement) => {
+        if(!ref) return;
+        inputRefs.current[ref.name] = ref;
+    }, [formSchema]);
+
+    const listeners: React.HTMLProps<HTMLInputElement> = useMemo(() => ({
         onChange: handleOnChange,
         onBlur: handleOnBlur,
+        ref: handleRef
     }), [formSchema]);
     
     return {
