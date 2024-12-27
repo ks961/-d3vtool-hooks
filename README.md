@@ -806,6 +806,10 @@ In this example, `useSecId` is used to create two generators:
 
 ---
 
+Here is the updated README.md with the revised example usage for the `useForm` hook:
+
+---
+
 ### `useForm`
 
 `useForm` is a custom React hook for managing form state, handling validation, and submitting forms with asynchronous logic. It provides an efficient way to bind form inputs to a schema, track validation errors, and perform custom submission actions. A notable feature is that it minimizes unnecessary re-renders: the component will only re-render when a validation error occurs, not when the input changes, improving performance.
@@ -815,8 +819,7 @@ In this example, `useSecId` is used to create two generators:
 ```ts
 const [formData, onSubmit, formErrors, setupInputRefs] = useForm<FormSchema>(
     initialFormData,
-    schema,
-    lazyValidation // Optional: delay formData validation until input stops
+    schema
 );
 ```
 
@@ -824,12 +827,12 @@ const [formData, onSubmit, formErrors, setupInputRefs] = useForm<FormSchema>(
 - `onSubmit`: A function to handle form submission. This function triggers submission logic and includes form validation.
 - `formErrors`: An object containing error messages for each form field.
 - `setupInputRefs`: A function that sets up input references for each form field, useful for managing focus or handling field-specific logic.
-- `lazyValidation`: (Optional) A boolean to enable or delay formData validation until input stops.
 
 ---
 
 #### Example
-![useForm_Gif](https://raw.githubusercontent.com/ks961/imgs/refs/heads/main/useForm.gif)
+
+[!useForm_Gif](https://raw.githubusercontent.com/ks961/imgs/refs/heads/main/useForm.gif)
 
 ---
 
@@ -868,8 +871,11 @@ type SchemaType = typeof schema;
 #### Step 3: **Initialize Form Data**
 
 ```tsx
-// or you can define it inline within hook, where
-// you don't have to make use of `VInfer`.
+/**
+ * Alternatively, you can define it directly within the hook argument. 
+ * This way, there's no need to use `VInfer` as it will automatically 
+ * infer the type.
+*/
 const initialFormData: VInfer<SchemaType> = {
     email: "",
     password: "",
@@ -884,16 +890,15 @@ const initialFormData: VInfer<SchemaType> = {
 
 ```tsx
 const [
-    formData, onSubmit, 
+    formData, onSubmit,
     formErrors, setupInputRefs
-] = useForm<SchemaType>(initialFormData, schema, true); // `true` enables delayed validation
+] = useForm<SchemaType>(initialFormData, schema);
 ```
 
 - **`formData`**: Holds the current values of the form fields (`email` and `password`).
 - **`onSubmit`**: Handles form submission logic and triggers validation.
 - **`formErrors`**: Contains validation error messages for form fields, if any exist.
 - **`setupInputRefs`**: A helper function to manage references to input fields, useful for things like auto-focus or scroll into view.
-- **`true`**: The third argument enables delayed validation, meaning validation is triggered only when attempting to submit.
 
 ---
 
@@ -971,20 +976,15 @@ async function handleOnSubmit() {
 </button>
 ```
 
+---
+
 #### Advantages
 
 1. **Automatic Validation**: Validation is seamlessly integrated with the form state. You define a schema, and the hook automatically handles the validation of form data against it.
-
 2. **Minimized Re-renders**: The component only re-renders when there is a validation error, significantly improving performance, especially for larger forms.
-
-
-4. **Error Handling**: The hook provides a simple way to display validation errors for each field. You can easily bind error messages to form inputs, improving the user experience.
-
-5. **Custom Submission Handling**: The `onSubmit` function allows you to add any custom logic on form submission, making it highly flexible for various use cases like API requests or complex business logic.
-
-6. **Delay Validation Option**: With the option to enable or disable delayed validation, you have control over when validation occurs—on every input change or only during submission.
-
-8. **Clean and Simple API**: The hook returns an intuitive array structure with form state, submission handler, error object, and input reference setup function, making it easy to integrate into any React form component.
+3. **Error Handling**: The hook provides a simple way to display validation errors for each field. You can easily bind error messages to form inputs, improving the user experience.
+4. **Custom Submission Handling**: The `onSubmit` function allows you to add any custom logic on form submission, making it highly flexible for various use cases like API requests or complex business logic.
+5. **Clean and Simple API**: The hook returns an intuitive array structure with form state, submission handler, error object, and input reference setup function, making it easy to integrate into any React form component.
 
 ---
 

@@ -1,4 +1,3 @@
-import { useDebounce } from "../useDebounce";
 import { ObjectValidationError, VInfer } from "@d3vtool/utils"
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { ObjectValidator } from "@d3vtool/utils/dist/validator/ObjectValidator";
@@ -64,13 +63,12 @@ export type UseForm<F> = [
 ];
 
 /**
- * `useForm` a custom React hook for managing form state with validation.
- * 
+ * `useForm` is a custom React hook for managing form state with validation.
+ *
  * @template FormSchema - The schema used to validate the form, based on an object validator.
  *
  * @param defaultFormData - The initial form data object that matches the shape of the form schema.
  * @param formSchema - The schema used to validate the form fields. This ensures that form values adhere to the schema's validation rules.
- * @param lazyValidation - (Optional) A flag to enable lazy formData validation. If set to true, validation will only occur after input stops, rather than on every change. Defaults to `false`.
  *
  * @returns A tuple containing:
  * - `formData`: The current form data as an object that matches the schema shape.
@@ -87,11 +85,8 @@ export type UseForm<F> = [
  * const [formData, onSubmit, formErrors, setupInputRefs] = useForm({
  *   email: "",
  *   password: "",
- * }, schema, true); // The third parameter is optional. [ Defaults: false ]
+ * }, schema);
  *
- * // Setting Third parameter `lazyValidation` to `true` will 
- * // reduce the no. of re-rendering on formData validation error.
- * 
  * @example
  * const handleOnSubmit = async () => {
  *   // Handle form submission logic here
@@ -119,8 +114,7 @@ export type UseForm<F> = [
  */
 export function useForm<FormSchema extends ObjectValidator<Object>>(
     defaultFormData: VInfer<FormSchema>,
-    formSchema: FormSchema,
-    lazyValidation: boolean = false
+    formSchema: FormSchema
 ): UseForm<VInfer<FormSchema>> {
 
     type FormType = VInfer<FormSchema>; 
@@ -130,12 +124,6 @@ export function useForm<FormSchema extends ObjectValidator<Object>>(
     const formDataRef = useRef<FormType>(defaultFormData);
 
     const [ _, trigger ] = useState<boolean>(false);
-
-    const memoizedTrigger = useCallback(() => {
-        trigger(prev => !prev);
-    }, []);
-
-    const debounce = useDebounce(800, memoizedTrigger);
 
     const formErrorRef = useRef<FormError<FormType>>(
         Object.keys(defaultFormData).reduce((acc, key) => {
@@ -185,16 +173,15 @@ export function useForm<FormSchema extends ObjectValidator<Object>>(
         name: string,
         errors: Record<string, string[]>,
     ) {
-        if(errors[name]?.length > 0) {
-            (formErrorRef.current as any)[name] = errors[name];
+        const currentInputErrorMsgs = errors[name];
+        if(currentInputErrorMsgs?.length > 0 && currentInputErrorMsgs[0] !== (formErrorRef.current as any)[name]) {
+            (formErrorRef.current as any)[name] = currentInputErrorMsgs[0];
             
-            (lazyValidation) ?
-                debounce() : trigger(prev => !prev); 
-        } else if(formErrorRef.current[name as keyof typeof formErrorRef.current].length > 0) {
+            trigger(prev => !prev); 
+        } else if(currentInputErrorMsgs === undefined && formErrorRef.current[name as keyof typeof formErrorRef.current].length > 0) {            
             formErrorRef.current[name as keyof typeof formErrorRef.current] = "";
             
-            (lazyValidation) ? 
-                debounce() : trigger(prev => !prev); 
+            trigger(prev => !prev); 
         }
     }
 
