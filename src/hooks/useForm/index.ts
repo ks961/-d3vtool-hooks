@@ -25,7 +25,7 @@ export type FormAction = (event: FormEvent) => Promise<void>;
 export type FormMiddlewareAction = () => void | Promise<void>;
 
 /**
- * Type definition for a submit action that triggers a form submission and
+ * Type definition for a submit action that forceRenders a form submission and
  * allows you to specify a middleware action to run before submission.
  */
 export type SubmitAction = (callback: FormMiddlewareAction) => FormAction;
@@ -113,6 +113,8 @@ export function useForm<FormSchema extends ObjectValidator<Object>>(
 
     type FormType = VInfer<FormSchema>; 
 
+    const [ _, forceRender ] = useState<boolean>(false);
+
     const formDataRef = useRef<FormType>(defaultFormData);
 
     type InputRefMap = Record<string, HTMLInputElement>;
@@ -131,13 +133,11 @@ export function useForm<FormSchema extends ObjectValidator<Object>>(
             formErrorRef.current[errorKey as keyof typeof formDataRef.current] = errors[errorKey][0];
         }
 
-        trigger(prev => !prev);
+        forceRender(prev => !prev);
         scheduledStateUpdatesRef.current = [];
     }, []);
     
     const debounceStateUpdate = useDebounce(300, batchStateUpdates);
-
-    const [ _, trigger ] = useState<boolean>(false);
 
     const formErrorRef = useRef<FormError<FormType>>(
         Object.keys(defaultFormData).reduce((acc, key) => {
@@ -166,11 +166,11 @@ export function useForm<FormSchema extends ObjectValidator<Object>>(
         if(currentInputErrorMsgs?.length > 0 && currentInputErrorMsgs[0] !== (formErrorRef.current as any)[name]) {
             (formErrorRef.current as any)[name] = currentInputErrorMsgs[0];
             
-            trigger(prev => !prev); 
+            forceRender(prev => !prev); 
         } else if(currentInputErrorMsgs === undefined && formErrorRef.current[name as keyof typeof formErrorRef.current].length > 0) {            
             formErrorRef.current[name as keyof typeof formErrorRef.current] = "";
             
-            trigger(prev => !prev); 
+            forceRender(prev => !prev); 
         }
     }
 
@@ -195,10 +195,10 @@ export function useForm<FormSchema extends ObjectValidator<Object>>(
                 if(err instanceof ObjectValidationError) {
                     if(err.message?.length > 0) {
                         (formErrorRef.current as any)[err.key] = err.message;
-                        trigger(prev => !prev);
+                        forceRender(prev => !prev);
                     } else if(formErrorRef.current[err.key as keyof typeof formErrorRef.current].length > 0) {
                         formErrorRef.current[err.key as keyof typeof formErrorRef.current] = "";
-                        trigger(prev => !prev);
+                        forceRender(prev => !prev);
                     }
                 }
             }
