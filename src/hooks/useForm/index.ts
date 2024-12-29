@@ -106,7 +106,7 @@ export type UseForm<F> = {
  * // Access individual form data
  * const email = getFormData('email');
  */
-export function useForm<FormSchema extends ObjectValidator<Object>>(
+export function useForm<FormSchema extends ObjectValidator<FormSchema>>(
     defaultFormData: VInfer<FormSchema>,
     formSchema: FormSchema
 ): UseForm<VInfer<FormSchema>> {
