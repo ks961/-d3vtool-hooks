@@ -227,10 +227,11 @@ export function useForm<FormSchema extends ObjectValidator<Object>>(
     }, [formSchema]);
 
 
-    const handleRef = useCallback((ref: HTMLInputElement) => {
-        if(!ref) return;
-        inputRefs.current[ref.name] = ref;
-    }, [formSchema]);
+    const handleRef = useCallback((ref: HTMLInputElement | null) => {
+        if (ref) {
+          inputRefs.current[ref.name] = ref;
+        }
+    }, []);
 
     const listeners: React.HTMLProps<HTMLInputElement> = useMemo(() => ({
         onChange: handleOnChange,
