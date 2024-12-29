@@ -46,7 +46,7 @@ export type UseForm<F> = {
     formErrors: FormError<F>,         // Form errors object
     setFormData: SetFormDataAction<F>,  // Function to set specific form data
     getFormData: GetFormDataAction<F>,  // Function to get specific form data
-    listeners: ExtractEventListeners<HTMLInputElement>;  // Event listeners for inputs
+    listeners: React.HTMLProps<HTMLInputElement>;  // Event listeners for inputs
 }
 
 /**
@@ -106,7 +106,7 @@ export type UseForm<F> = {
  * // Access individual form data
  * const email = getFormData('email');
  */
-export function useForm<FormSchema extends ObjectValidator<FormSchema>>(
+export function useForm<FormSchema extends ObjectValidator<unknown>>(
     defaultFormData: VInfer<FormSchema>,
     formSchema: FormSchema
 ): UseForm<VInfer<FormSchema>> {
