@@ -34,8 +34,6 @@ export type SetFormDataAction<F> =
     
 export type GetFormDataAction<F> = (key: keyof F) => F[keyof F];
 
-type HandleRefAction = (instance: HTMLInputElement | null) => void;
-
 /**
  * Type definition for the hook that provides the form state (F),
  * the form submission handler (SubmitAction), form error handling (FormError),
@@ -235,7 +233,7 @@ export function useForm<FormSchema extends ObjectValidator<Object>>(
         }
     }, [formSchema]);
 
-    const listeners: React.ComponentPropsWithRef<"input">  = useMemo(() => ({
+    const listeners: React.ComponentPropsWithRef<"input"> = useMemo(() => ({
         onChange: handleOnChange,
         onBlur: handleOnBlur,
         ref: handleRef,
