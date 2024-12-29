@@ -47,7 +47,7 @@ export type UseForm<F> = {
     formErrors: FormError<F>,         // Form errors object
     setFormData: SetFormDataAction<F>,  // Function to set specific form data
     getFormData: GetFormDataAction<F>,  // Function to get specific form data
-    listeners: React.HTMLProps<HTMLInputElement>;  // Event listeners for inputs
+    listeners: React.ComponentPropsWithRef<"input">;  // Event listeners for inputs
 }
 
 /**
