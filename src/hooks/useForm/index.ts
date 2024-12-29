@@ -33,6 +33,14 @@ export type SetFormDataAction<F> =
     (key: keyof F, data: F[keyof F]) => void;
     
 export type GetFormDataAction<F> = (key: keyof F) => F[keyof F];
+export type RefAction = (instance: HTMLInputElement | HTMLTextAreaElement | null) => void;
+
+export type Listeners = {
+    onChange: (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void,
+    onBlur: (event: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => void,
+    ref: RefAction,
+}
+
 
 /**
  * Type definition for the hook that provides the form state (F),
@@ -45,7 +53,7 @@ export type UseForm<F> = {
     formErrors: FormError<F>,         // Form errors object
     setFormData: SetFormDataAction<F>,  // Function to set specific form data
     getFormData: GetFormDataAction<F>,  // Function to get specific form data
-    listeners: React.ComponentPropsWithRef<"input">;  // Event listeners for inputs
+    listeners: Listeners;  // Event listeners for inputs
 }
 
 /**
@@ -116,7 +124,7 @@ export function useForm<FormSchema extends ObjectValidator<Object>>(
 
     const formDataRef = useRef<FormType>(defaultFormData);
 
-    type InputRefMap = Record<string, HTMLInputElement>;
+    type InputRefMap = Record<string, HTMLInputElement | HTMLTextAreaElement>;
     const inputRefs = useRef<InputRefMap>({}); 
 
     const scheduledStateUpdatesRef = useRef<VoidFunction[]>([]);
@@ -145,10 +153,10 @@ export function useForm<FormSchema extends ObjectValidator<Object>>(
         }, {} as FormError<FormType>)
     );
 
-    function handleOnBlur(event: React.FocusEvent<HTMLInputElement>) {
+    function handleOnBlur(event: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) {
         if(event.type === "focus") return;
 
-        const { name } = event.target as HTMLInputElement;
+        const { name } = event.target as HTMLInputElement | HTMLTextAreaElement;
 
         if(formErrorRef.current[name as keyof FormError<FormType>].length > 0) 
             return;
@@ -174,7 +182,7 @@ export function useForm<FormSchema extends ObjectValidator<Object>>(
     }
 
     function handleOnInputChange(event: Event) {
-        const { name, value } = event.target as HTMLInputElement;
+        const { name, value } = event.target as HTMLInputElement | HTMLTextAreaElement;
         
         (formDataRef.current as any)[name] = value;
 
@@ -216,7 +224,7 @@ export function useForm<FormSchema extends ObjectValidator<Object>>(
         return formDataRef.current[key];
     }, [formSchema]);
 
-    const handleOnChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    const handleOnChange = useCallback((event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = event.target;
         
         (formDataRef.current as any)[name] = value;
@@ -227,13 +235,13 @@ export function useForm<FormSchema extends ObjectValidator<Object>>(
     }, [formSchema]);
 
 
-    const handleRef = useCallback((instance: HTMLInputElement | null) => {
+    const handleRef = useCallback((instance: HTMLInputElement | HTMLTextAreaElement | null) => {
         if (instance) {
           inputRefs.current[instance.name] = instance;
         }
     }, [formSchema]);
 
-    const listeners: React.ComponentPropsWithRef<"input"> = useMemo(() => ({
+    const listeners: Listeners = useMemo(() => ({
         onChange: handleOnChange,
         onBlur: handleOnBlur,
         ref: handleRef,
