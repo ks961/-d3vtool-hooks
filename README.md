@@ -227,13 +227,13 @@ export default DropdownComponent;
 
 `usePersistentState` is a custom hook that helps manage state and persists it in `localStorage`. It allows you to store and retrieve state values across sessions and tabs, with optional features like clearing the state when the component unmounts and delayed saving.
 
-#### Supported DataTypes
+#### Supported Data Types:
 1. **Primitive Types**
 2. **Object Types**
 3. **Special Object Types**
-     - BigInt
-     - RexExp
-     - Date
+    - BigInt
+    - RexExp
+    - Date
 
 
 #### Key Features:
