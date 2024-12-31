@@ -232,7 +232,7 @@ export default DropdownComponent;
 2. **Object Types**
 3. **Special Object Types**
     - BigInt
-    - RexExp
+    - RegExp
     - Date
 
 
