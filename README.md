@@ -115,6 +115,19 @@ setUser(mostRecentSnapshot => {
 }, true);
 ```
 
+##### Using with an Array:
+
+```ts
+import { useMState } from "@d3vtool/hooks";
+const [fruits, setFruits] = useMState([]);
+
+// Updating array state by mutating:
+setUser(prevFruits => {
+  prevFruits.push('Banana');
+  prevFruits.push('Apple');
+});
+```
+
 ---
 
 ### `useBoolean`
