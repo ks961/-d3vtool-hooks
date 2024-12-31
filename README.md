@@ -210,9 +210,37 @@ export default DropdownComponent;
 
 ---
 
-### usePersistentState
+### `usePersistentState`
 
-`usePersistentState` is a custom hook that helps manage state and persists it in `localStorage`. It allows you to store and retrieve state values across sessions and tabs, with an option to clear the state from storage when the component unmounts.
+`usePersistentState` is a custom hook that helps manage state and persists it in `localStorage`. It allows you to store and retrieve state values across sessions and tabs, with optional features like clearing the state when the component unmounts and delayed saving.
+
+#### Key Features:
+1. **Persist storage state across windows/tabs**: The state is synced across multiple tabs and windows in real-time, so any updates in one tab are immediately reflected in others.
+
+2. **Optimized state caching**: Once the state is fetched from `localStorage`, it is cached in memory. This ensures that subsequent reads access the cached state instead of fetching from `localStorage` again, improving performance.
+
+3. **Efficient state updates**: The hook updates the state across windows/tabs in real-time but delays persisting the final value to `localStorage`. This reduces unnecessary writes, ensuring that only the final state is saved when updates stop.
+
+4. **Delayed saving with `saveDelay`**: The hook allows you to set a delay before saving the state to `localStorage`. This is useful for debouncing frequent state changes, such as during form input or rapid user interactions.
+
+5. **Automatic cleanup**: With the `clearStorageOnUnMount` option, you can configure the hook to remove the stored state when the component unmounts, preventing stale data from persisting across sessions.
+
+6. **Real-time synchronization across multiple components**: If multiple components use the same persistent state key, they will automatically share and sync the state in real-time, making it easier to manage shared state across different parts of your app.
+
+7. **Supports both primitive and complex state types**: The hook can handle various state types, from simple values like numbers and strings to more complex objects and arrays.
+
+8. **Reduced re-rendering overhead**: The internal caching and optimized `setState` behavior help minimize unnecessary re-renders, improving overall app performance.
+
+9. **Safe state initialization**: You can pass an initial state or an initializer function, which is useful for dynamically initializing the state based on complex logic or asynchronous operations.
+
+#### Usage Scenarios:
+- **Cross-tab synchronization**: Ideal for scenarios where you need to keep state consistent across multiple tabs/windows, such as user preferences, session data, or shopping cart information.
+
+- **Form auto-save**: Automatically persist form data in `localStorage` and sync it across tabs, ensuring that users don’t lose progress if they accidentally close a tab or window.
+
+- **Improving app performance**: Caching state reduces frequent reads from `localStorage`, and the delayed save mechanism prevents excessive writes, making this hook perfect for high-traffic or complex applications.
+
+---
 
 #### API
 
@@ -220,71 +248,118 @@ export default DropdownComponent;
 const [state, setState] = usePersistentState<T>(
   key: string, 
   initialState: T | () => T, 
-  config?: { clearStorageOnUnMount: boolean }
+  config?: { saveDelay?: number, clearStorageOnUnMount?: boolean, useLayout?: boolean }
 );
 ```
 
-- `key`: A unique string to identify the stored state in `localStorage`.
-- `initialState`: The initial state value or a function that returns the initial state.
-- `config`: Optional configuration object.
-  - `clearStorageOnUnMount`: Boolean flag indicating whether to clear the state from storage when the component unmounts (default is `false`).
+- **`key`**: A unique string to identify the stored state in `localStorage`.
 
-#### Example
+- **`initialState`**: The initial state value or a function that returns the initial state.
+
+- **`config`**: Optional configuration object:
+  - **`saveDelay`**: (Default: `300ms`) Delay before saving the state to `localStorage` after a state update.
+  
+  - **`clearStorageOnUnMount`**: (Default: `false`) Boolean flag indicating whether to clear the state from storage when the component unmounts.
+  
+  - **`useLayout`**: (Default: `false`) If `true`, synchronizes state updates during the layout phase.
+
+---
+
+#### Basic Example
+
+![usePersistentState_Gif](https://raw.githubusercontent.com/ks961/imgs/refs/heads/main/userPersistentState.gif)
 
 ```tsx
 import { usePersistentState } from "@d3vtool/hooks";
 
 const CounterComponent: React.FC = () => {
-    const [ count, setCount ] = usePersistentState("count", 0);
+  const [count, setCount] = usePersistentState("count", 0);
 
-    function handleInc() {
-        setCount(prev => prev + 1);
-    }
-    
-    function handleDec() {
-        setCount(prev => prev - 1);
-    }
+  function handleIncrement() {
+    setCount(prev => prev + 1);
+  }
 
-    return(
-        <div style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: "12px",
-            marginTop: "12rem"
-        }}>
-            <button onClick={handleDec}>DEC</button>
-            <p>{count}</p>
-            <button onClick={handleInc}>INC</button>
-        </div>
-    );
+  function handleDecrement() {
+    setCount(prev => prev - 1);
+  }
+
+  return (
+    <div style={{
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: "12px",
+      marginTop: "12rem"
+    }}>
+      <button onClick={handleDecrement}>DEC</button>
+      <p>{count}</p>
+      <button onClick={handleIncrement}>INC</button>
+    </div>
+  );
 };
 
 export default CounterComponent;
 ```
 
-#### Example with `clearStorageOnUnMount`
+---
+
+#### Example with `clearStorageOnUnMount` and `saveDelay`
 
 ```tsx
 import { usePersistentState } from "@d3vtool/hooks";
 
+// Define config outside or use useMemo to prevent re-creation on every render.
 const pStateConfig = {
-    clearStorageOnUnMount: true
-};
-const SessionComponent: React.FC = () => {
-    const [sessionData, setSessionData] = usePersistentState('session', {}, pStateConfig);
+  saveDelay: 200, // Save after 200ms delay
+  clearStorageOnUnMount: true
+}
 
-    return (
-        <div>
-            <p>Session Data: {JSON.stringify(sessionData)}</p>
-            <button onClick={() => setSessionData({ user: 'John Doe' })}>Set User</button>
-            <button onClick={() => setSessionData({})}>Clear Session</button>
-        </div>
-    );
+const SessionComponent: React.FC = () => {
+  const [sessionData, setSessionData] = usePersistentState('session', {}, pStateConfig);
+
+  return (
+    <div>
+      <p>Session Data: {JSON.stringify(sessionData)}</p>
+      <button onClick={() => setSessionData({ user: 'John Doe' })}>Set User</button>
+      <button onClick={() => setSessionData({})}>Clear Session</button>
+    </div>
+  );
 };
 
 export default SessionComponent;
 ```
+
+---
+
+#### Example with `useLayout` Option
+
+```tsx
+import { usePersistentState } from "@d3vtool/hooks";
+
+const LayoutComponent: React.FC = () => {
+  const [layoutData, setLayoutData] = usePersistentState('layoutData', { theme: 'light' }, {
+    useLayout: true
+  });
+
+  return (
+    <div>
+      <p>Layout Data: {JSON.stringify(layoutData)}</p>
+      <button onClick={() => setLayoutData({ theme: 'dark' })}>Change Theme</button>
+    </div>
+  );
+};
+
+export default LayoutComponent;
+```
+
+---
+
+### Key Notes:
+1. **Save Delay**: You can set the delay for saving state to `localStorage` using the `saveDelay` option. This is useful to debounce frequent state updates.
+
+2. **Clear on Unmount**: The `clearStorageOnUnMount` option will remove the stored state when the component unmounts, preventing stale state from lingering in `localStorage`.
+
+3. **Real-Time Syncing**: The state is automatically synced across tabs, providing real-time state management across your app, whether for user settings, session data, or shopping cart items.
 
 ---
 
@@ -494,8 +569,6 @@ const ComputedCounterComponent: React.FC = () => {
 export default ComputedCounterComponent;
 ```
 
-Here’s the usage documentation for the `useStoredHub` hook with the provided example:
-
 ---
 
 ### useStoredHub
@@ -633,16 +706,18 @@ export const fetchUserDataHub = createPromiseHub(undefined, async (prevState) =>
 
 ### `usePromiseHub`
 
-`usePromiseHub` is a custom hook that helps manage asynchronous state using a promise hub. It provides the current state, loading status, error information, and a way to re-trigger the async action.
+`usePromiseHub` is a custom hook that helps manage asynchronous state using a promise hub. It provides the current state, loading status, error information, and a way to re-trigger the async action. The hook can be configured to either trigger the promise immediately or allow manual re-triggering, and optionally integrate with React Suspense.
 
 #### API
 
 ```ts
-const [state, error, isLoading, retry] = usePromiseHub(promiseHub, immediate?);
+const { data, error, isPending, reAction } = usePromiseHub(promiseHub, config?);
 ```
 
 - `promiseHub`: The promise hub created using `createPromiseHub`.
-- `immediate`: (Optional) If `true`, the hook will immediately trigger the promise action. Defaults to `true`.
+- `config`: (Optional) Configuration object for the hook. It includes:
+  - `immediate`: If `true`, the promise action will be triggered immediately on hook initialization. Defaults to `true`.
+  - `suspense`: If `true`, the hook will integrate with React Suspense, suspending the component until the promise resolves. Defaults to `false`.
 
 #### Example
 
@@ -651,14 +726,38 @@ import { usePromiseHub } from "@d3vtool/hooks";
 import { fetchUserDataHub } from "./userHub";
 
 const UserProfile: React.FC = () => {
-    const [userData, error, isLoading, retry] = usePromiseHub(fetchUserDataHub);
+    const { data, error, isPending, reAction } = usePromiseHub(fetchUserDataHub);
 
     return (
         <div>
-            {isLoading ? <p>Loading user data...</p> : <p>User: {userData?.name}</p>}
+            {isPending ? <p>Loading user data...</p> : <p>User: {data?.name}</p>}
             {error && <p>Error: {error.message}</p>}
-            <button onClick={retry}>Retry</button>
+            <button onClick={reAction} disabled={isPending}>Retry</button>
         </div>
+    );
+};
+
+export default UserProfile;
+```
+
+#### Example with Suspense
+
+If you're using `suspense`, you don't need to use the `isPending` state, as React Suspense will handle the loading state for you.
+
+```tsx
+import { usePromiseHub } from "@d3vtool/hooks";
+import { fetchUserDataHub } from "./userHub";
+import { Suspense, useMemo } from "react";
+
+const UserProfile: React.FC = () => {
+    const config = useMemo(() => ({ suspense: true }), []); // Use useMemo to avoid recreating config on re-renders
+    const { data, error } = usePromiseHub(fetchUserDataHub, config);
+
+    return (
+        <Suspense fallback={<p>Loading...</p>}>
+            {error && <p>Error: {error.message}</p>}
+            <p>User: {data?.name}</p>
+        </Suspense>
     );
 };
 
@@ -669,15 +768,16 @@ export default UserProfile;
 
 ### `usePromiseReadHub`
 
-`usePromiseReadHub` is a custom hook that provides read-only access to the state managed by a promise hub. It returns the current state, any error, and loading status.
+`usePromiseReadHub` is a custom hook that provides read-only access to the state managed by a promise hub. It returns the current state, any error, and the loading status.
 
 #### API
 
 ```ts
-const [state, error, isLoading] = usePromiseReadHub(promiseHub);
+const { data, error, isPending } = usePromiseReadHub(promiseHub);
 ```
 
 - `promiseHub`: The promise hub managing the async state.
+- `suspense`: (Optional) If `true`, integrates with React Suspense, suspending the component until the promise resolves.
 
 #### Example
 
@@ -686,11 +786,11 @@ import { usePromiseReadHub } from "@d3vtool/hooks";
 import { fetchUserDataHub } from "./userHub";
 
 const UserProfileReadOnly: React.FC = () => {
-    const [userData, error, isLoading] = usePromiseReadHub(fetchUserDataHub);
+    const { data, error, isPending } = usePromiseReadHub(fetchUserDataHub);
 
     return (
         <div>
-            {isLoading ? <p>Loading user data...</p> : <p>User: {userData?.name}</p>}
+            {isPending ? <p>Loading user data...</p> : <p>User: {data?.name}</p>}
             {error && <p>Error: {error.message}</p>}
         </div>
     );
@@ -699,21 +799,50 @@ const UserProfileReadOnly: React.FC = () => {
 export default UserProfileReadOnly;
 ```
 
+### Example with Suspense
+
+If you prefer to use React Suspense to handle the loading state automatically, you can enable it by passing `true` for the `suspense` flag.
+
+```tsx
+import { usePromiseReadHub } from "@d3vtool/hooks";
+import { fetchUserDataHub } from "./userHub";
+import { Suspense } from "react";
+
+const UserProfileSuspense: React.FC = () => {
+    const { data, error } = usePromiseReadHub(fetchUserDataHub, true);
+
+    return (
+        <Suspense fallback={<p>Loading user data...</p>}>
+            <p>User: {data?.name}</p>
+            {error && <p>Error: {error.message}</p>}
+        </Suspense>
+    );
+};
+
+export default UserProfileSuspense;
+```
+
+### Explanation:
+
+- **Suspense**: If `suspense` is set to `true`, it will automatically suspend the component's rendering until the promise resolves, showing the fallback (`<p>Loading...</p>`) while loading.
+- **Error Handling**: Any errors encountered during the promise execution are displayed using the `error`.
+
 ---
 
 ### `usePromiseHubAction`
 
-`usePromiseHubAction` is a custom hook that allows you to manually trigger an asynchronous action within a `PromiseHub` and provides the current loading state and any errors.
+`usePromiseHubAction` is a custom hook that allows you to manually trigger an asynchronous action within a `PromiseHub` from any other component and provides the current loading state and any errors.
 
 #### API
 
 ```ts
-const [reAction, error, isLoading] = usePromiseHubAction(promiseHub);
+const { reAction, error, isPending } = usePromiseHubAction(promiseHub, suspense?);
 ```
 
 - **`reAction`**: A function to trigger the asynchronous action manually.
 - **`error`**: The current error state if the action fails.
-- **`isLoading`**: A boolean indicating whether the action is currently loading.
+- **`isPending`**: A boolean indicating whether the action is currently loading.
+- **`suspense`**: (Optional) If `true`, the hook will suspend rendering until the promise is resolved.
 
 #### Example
 
@@ -733,20 +862,21 @@ export const productListHub = createPromiseHub<IProduct[] | undefined>(undefined
 });
 ```
 
-This example demonstrates how to trigger a product list refetch when clicking a button. The button is disabled and shows "Loading..." while the data is being fetched.
+#### Example Usage
+
+##### Without Suspense
 
 ```tsx
-import React from 'react';
 import { usePromiseHubAction } from "@d3vtool/hooks";
 import { productListHub } from "./productListHub";
 
 const ProductList: React.FC = () => {
-    const [refetchProducts, error, isLoading] = usePromiseHubAction(productListHub);
+    const { reAction: refetchProducts, error, isPending } = usePromiseHubAction(productListHub);
 
     return (
         <div>
-            <button onClick={refetchProducts} disabled={isLoading}>
-                {isLoading ? 'Loading...' : 'Refetch Products'}
+            <button onClick={refetchProducts} disabled={isPending}>
+                {isPending ? 'Loading...' : 'Refetch Products'}
             </button>
             {error && <p style={{ color: 'red' }}>Error fetching products: {error.message}</p>}
         </div>
@@ -756,12 +886,44 @@ const ProductList: React.FC = () => {
 export default ProductList;
 ```
 
+##### With Suspense
+
+```tsx
+import React, { Suspense } from "react";
+import { usePromiseHubAction } from "@d3vtool/hooks";
+import { productListHub } from "./productListHub";
+
+const ProductList: React.FC = () => {
+    const { reAction: refetchProducts, error, isPending } = usePromiseHubAction(productListHub, true);
+
+    return (
+        <Suspense fallback={<p>Loading products...</p>}>
+            <div>
+                <button onClick={refetchProducts} disabled={isPending}>
+                    {isPending ? 'Loading...' : 'Refetch Products'}
+                </button>
+                {error && <p style={{ color: 'red' }}>Error fetching products: {error.message}</p>}
+            </div>
+        </Suspense>
+    );
+};
+
+export default ProductList;
+```
+
 ![usePromiseHubAction_Gif](https://raw.githubusercontent.com/ks961/imgs/refs/heads/main/usePromiseHubAction.gif)
 
-#### Notes:
-- The `productListHub` is responsible for fetching data from `http://localhost:4000/products`.
-- The `refetchProducts` action in the `ProductList` component triggers the fetch operation, updating the state in the hub.
-- The button becomes disabled with "Loading..." text while the data is being fetched, and any errors encountered during the fetch are displayed below the button.
+#### Explanation:
+
+- **Without Suspense**:
+  - The button allows the user to manually trigger the `refetchProducts` action, which re-fetches the product list.
+  - The button text changes to "Loading..." when the promise is in progress, and the button is disabled to prevent multiple clicks.
+  - If an error occurs during the fetch, it is displayed below the button.
+  
+- **With Suspense**:
+  - The component is wrapped in a `Suspense` boundary, which will suspend rendering until the promise is resolved.
+  - The `fallback` prop is used to show a loading message while the promise is pending.
+  - If the `suspense` flag is set to `true`, the component suspends until the asynchronous action completes.
 
 ---
 

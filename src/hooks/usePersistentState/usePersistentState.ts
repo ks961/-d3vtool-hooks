@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { ms, useDebounce } from "../useDebounce";
+import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 
 /**
  * Type representing a function that initializes state.
@@ -30,48 +31,116 @@ export type UpdateStateAction<T> = (newState: T | PrevStateAction<T>) => void;
 export type UsePersistentState<T> = [T, UpdateStateAction<T>];
 
 export type UsePersistentStateConfig = {
-    clearStorageOnUnMount: boolean
+    /**
+     * The delay in milliseconds before saving the state to localStorage.
+     * Defaults to 300ms.
+     */
+    saveDelay?: ms, 
+    
+    /**
+     * Determines whether the state should be cleared from localStorage
+     * when the component using the hook unmounts. Defaults to `false`.
+     */
+    clearStorageOnUnMount?: boolean, 
+
+    /**
+     * A boolean flag to determine if the state update should be synchronized
+     * synchronously during the layout phase. Defaults to `false`.
+     */
+    useLayout?: boolean // default to false
+}
+
+export type StorageInfo<T> = {
+    /**
+     * The key under which the state is stored in localStorage.
+     */
+    key: string, 
+    
+    /**
+     * The value of the state being persisted.
+     */
+    value: T
+}
+
+export type StorageBroadcast<T> = {
+    /**
+     * The type of the broadcast event to indicate state changes across tabs.
+     */
+    type: "storage-broadcast",
+    
+    /**
+     * The data associated with the storage update.
+     */
+    storageData: StorageInfo<T>
 }
 
 /**
- * A custom hook that provides persistent state management, storing the state in localStorage across tabs.
+ * A custom hook that manages persistent state by storing it in localStorage.
+ * The state can be shared across browser tabs, and optionally cleared when
+ * the component unmounts. Supports debouncing the save to reduce performance hits.
+ * Additionally, it offers an option to synchronize state changes during the
+ * layout phase to ensure immediate updates when needed.
  * 
  * @template T - The type of the state value. Defaults to `unknown` if not provided.
- * @param {string} key - The key under which the state is stored persistently.
+ * 
+ * @param {string} key - The key under which the state is stored persistently in localStorage.
  * @param {T | StateInitializerAction<T>} initialState - The initial state or a function that returns the initial state.
- * @param {UsePersistentStateConfig} [config] - Configuration options for the persistent state.
- * @param {boolean} [config.clearStorageOnUnMount=false] - Determines whether the state should be removed from storage when the component unmounts.
+ * @param {UsePersistentStateConfig} [config] - Optional configuration for the persistent state:
+ *   - `saveDelay` (default 300ms): Delay before saving state to localStorage.
+ *   - `clearStorageOnUnMount` (default false): Whether to clear the state from localStorage when the component unmounts.
+ *   - `useLayout` (default false): If `true`, the state will be updated synchronously in the layout phase.
+ * 
  * @returns {UsePersistentState<T>} - Returns the current state and a function to update the state.
  * 
  * @example
- * // Using `usePersistentState` with a simple value:
+ * // Basic usage with a simple value:
  * const [count, setCount] = usePersistentState('count', 0);
  * 
  * // Using `usePersistentState` with a state initializer function:
  * const [user, setUser] = usePersistentState('user', () => ({ name: 'John Doe' }));
  * 
- * // Updating the state with a new value:
+ * // Updating the state:
  * setCount(5);
  * 
- * // Updating the state based on the previous state:
+ * // Updating the state based on the previous value:
  * setCount(prev => prev + 1);
  * 
- * // Example with config to clear storage on unmount:
- * // Always define config object outside of your Component and then pass it as argument.
- * const [sessionData, setSessionData] = usePersistentState('session', {}, {
+ * @example
+ * // Using `usePersistentState` with config to clear localStorage on component unmount:
+ * const config = useMemo(() => ({
  *     clearStorageOnUnMount: true
+ * }), []);
+ * 
+ * const [sessionData, setSessionData] = usePersistentState('session', {}, config);
+ * 
+ * // Define the `config` object outside of your component or using `useMemo` to prevent recreation on each render.
+ * 
+ * @example
+ * // Using `usePersistentState` with config to synchronize state updates during the layout phase:
+ * const [layoutData, setLayoutData] = usePersistentState('layoutData', { theme: 'light' }, {
+ *     useLayout: true
  * });
  */
 export function usePersistentState<T = unknown>(
     key: string, 
     initialState: T | StateInitializerAction<T>,
-    config: UsePersistentStateConfig = {
-        clearStorageOnUnMount: false
-    }
+    config?: UsePersistentStateConfig
 ): UsePersistentState<T> {
+    const isBrowser = typeof window !== "undefined";
 
     const prevKeyRef = useRef<string>("");
-    const isStateSet = useRef<boolean>(false);
+
+    const channelId = useId();
+
+    const channelRef = useRef<BroadcastChannel | null>(null);
+
+    const userConfig: UsePersistentStateConfig = {
+        saveDelay: config?.saveDelay ?? 300,
+        clearStorageOnUnMount: config?.clearStorageOnUnMount ?? false,
+        useLayout: config?.useLayout ?? false
+    }
+    
+    const effectHook = userConfig.useLayout ? useLayoutEffect : useEffect;
 
     function initialize() {
         const iState = (initialState instanceof Function) ?
@@ -82,23 +151,26 @@ export function usePersistentState<T = unknown>(
 
     const [ state, setState ] = useState<T>(initialize);
 
-    function handleStorageChange(event: StorageEvent) {
-        if(event.key === key && event.newValue) {
-            localStorage.setItem(key, event.newValue);
-            
-            if(isStateSet.current) {
-                isStateSet.current = false;                
-                return;
-            }
+    const handleSaveToStorage = useCallback((key: string, value: T) => {
+        if(!isBrowser) return;
 
-            const deSerializedData = JSON.parse(event.newValue) as T;
-            setState(deSerializedData);
+        localStorage.setItem(key, JSON.stringify(value));
+    }, [key]);
+
+    const debounce = useDebounce<[string, T]>(userConfig.saveDelay!, handleSaveToStorage);
+    
+    const handleStorageChange = useCallback((event: MessageEvent<StorageBroadcast<T>>) => {
+        
+        if(event.data.type !== "storage-broadcast") return;
+        if(event.data.storageData.key === key && event.data.storageData.value) {
+            setState(event.data.storageData.value);
         }
-    }
+                    
+    }, [key]);
 
-    useLayoutEffect(() => {
-        if(!window) return;
-
+    effectHook(() => {
+        if(!isBrowser) return;
+        
         try {
             const data = localStorage.getItem(key);
     
@@ -106,26 +178,31 @@ export function usePersistentState<T = unknown>(
             
             setState(parsedData);
         } catch {
-            isStateSet.current = true;
-            dispatchStorageEvent(key, state);
+            broadcastEvent(key, state);
         }
 
-        window.addEventListener("storage", handleStorageChange);
+        const channel = new BroadcastChannel(channelId);
+        channelRef.current = channel;
+
+        channelRef.current?.addEventListener("message", handleStorageChange);
         
         return () => {
-            window.addEventListener("storage", handleStorageChange);
+            channelRef.current?.removeEventListener("message", handleStorageChange);
 
-            if(config.clearStorageOnUnMount) {
+            channelRef.current?.close();
+            channelRef.current = null;
+            
+            if(userConfig.clearStorageOnUnMount) {
                 localStorage.removeItem(key);
             }
         }
     }, []);
 
     useEffect(() => {
-        if(prevKeyRef.current.length > 0 && key !== prevKeyRef.current && window) {
+        if(prevKeyRef.current.length > 0 && key !== prevKeyRef.current && isBrowser) {
             
             localStorage.removeItem(prevKeyRef.current);
-            dispatchStorageEvent(key, initialize());
+            broadcastEvent(key, initialize());
             
             prevKeyRef.current = key;
 
@@ -134,11 +211,19 @@ export function usePersistentState<T = unknown>(
         }
     }, [key]);
 
-    function dispatchStorageEvent(key: string, newState: T) {
-        window.dispatchEvent(new StorageEvent("storage", {
-            key,
-            newValue: JSON.stringify(newState)
-        }));
+    function broadcastEvent(key: string, newState: T) {
+        
+        const comm: StorageBroadcast<T> = {
+            type: "storage-broadcast",
+            storageData: {
+                key,
+                value: newState,
+            }
+        }
+
+        channelRef.current?.postMessage(comm);
+
+        debounce(key, newState);
     }
 
     const updateState = useCallback((newState: T | PrevStateAction<T>) => {
@@ -146,8 +231,7 @@ export function usePersistentState<T = unknown>(
             const nState = (newState instanceof Function ? 
                 (newState as PrevStateAction<T>)(prev) : newState);
             
-            isStateSet.current = true;
-            dispatchStorageEvent(key, nState);
+            broadcastEvent(key, nState);
 
             return nState;
         })
