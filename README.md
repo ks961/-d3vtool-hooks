@@ -745,23 +745,37 @@ export default UserProfile;
 If you're using `suspense`, you don't need to use the `isPending` state, as React Suspense will handle the loading state for you.
 
 ```tsx
+import { useMemo } from "react";
 import { usePromiseHub } from "@d3vtool/hooks";
 import { fetchUserDataHub } from "./userHub";
-import { Suspense, useMemo } from "react";
 
 const UserProfile: React.FC = () => {
     const config = useMemo(() => ({ suspense: true }), []); // Use useMemo to avoid recreating config on re-renders
     const { data, error } = usePromiseHub(fetchUserDataHub, config);
 
     return (
-        <Suspense fallback={<p>Loading...</p>}>
-            {error && <p>Error: {error.message}</p>}
-            <p>User: {data?.name}</p>
-        </Suspense>
+        {error && <p>Error: {error.message}</p>}
+        <p>User: {data?.name}</p>
     );
 };
 
 export default UserProfile;
+```
+
+```tsx
+import { Suspense } from "react";
+import UserProfile from "./UserProfile";
+
+const App: React.FC = () => {
+
+    return (
+        <Suspense fallback={<p>Loading...</p>}>
+          <UserProfile />
+        </Suspense>
+    );
+};
+
+export default App;
 ```
 
 ---
@@ -806,20 +820,33 @@ If you prefer to use React Suspense to handle the loading state automatically, y
 ```tsx
 import { usePromiseReadHub } from "@d3vtool/hooks";
 import { fetchUserDataHub } from "./userHub";
-import { Suspense } from "react";
 
 const UserProfileSuspense: React.FC = () => {
     const { data, error } = usePromiseReadHub(fetchUserDataHub, true);
 
     return (
-        <Suspense fallback={<p>Loading user data...</p>}>
-            <p>User: {data?.name}</p>
-            {error && <p>Error: {error.message}</p>}
-        </Suspense>
+        <p>User: {data?.name}</p>
+        {error && <p>Error: {error.message}</p>}
     );
 };
 
 export default UserProfileSuspense;
+```
+
+```tsx
+import { Suspense } from "react";
+import UserProfileSuspense from "./UserProfileSuspense";
+
+const App: React.FC = () => {
+
+    return (
+        <Suspense fallback={<p>Loading...</p>}>
+          <UserProfileSuspense />
+        </Suspense>
+    );
+};
+
+export default App;
 ```
 
 ### Explanation:
@@ -889,26 +916,39 @@ export default ProductList;
 ##### With Suspense
 
 ```tsx
-import React, { Suspense } from "react";
-import { usePromiseHubAction } from "@d3vtool/hooks";
 import { productListHub } from "./productListHub";
+import { usePromiseHubAction } from "@d3vtool/hooks";
 
 const ProductList: React.FC = () => {
-    const { reAction: refetchProducts, error, isPending } = usePromiseHubAction(productListHub, true);
+    const { reAction: refetchProducts, error } = usePromiseHubAction(productListHub, true);
 
     return (
-        <Suspense fallback={<p>Loading products...</p>}>
-            <div>
-                <button onClick={refetchProducts} disabled={isPending}>
-                    {isPending ? 'Loading...' : 'Refetch Products'}
-                </button>
-                {error && <p style={{ color: 'red' }}>Error fetching products: {error.message}</p>}
-            </div>
-        </Suspense>
+        <div>
+            <button onClick={refetchProducts}>
+                Refetch Products
+            </button>
+            {error && <p style={{ color: 'red' }}>Error fetching products: {error.message}</p>}
+        </div>
     );
 };
 
 export default ProductList;
+```
+
+```tsx
+import { Suspense } from "react";
+import ProductList from "./ProductList";
+
+const App: React.FC = () => {
+
+    return (
+        <Suspense fallback={<p>Loading Products...</p>}>
+          <ProductList />
+        </Suspense>
+    );
+};
+
+export default App;
 ```
 
 ![usePromiseHubAction_Gif](https://raw.githubusercontent.com/ks961/imgs/refs/heads/main/usePromiseHubAction.gif)
