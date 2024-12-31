@@ -1,5 +1,6 @@
 import { StorageBroadcast } from "./usePersistentState";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { deserialize } from "./utils";
 
 
 
@@ -43,8 +44,9 @@ export function useReadPersistentState<T = unknown>(
         
         try {
             const data = localStorage.getItem(key);
-        
-            const parsedData = JSON.parse(data ?? "") as T;
+            if(!data) throw new Error();
+
+            const parsedData = deserialize<T>(data);
             
             setState(parsedData);
         } catch{};

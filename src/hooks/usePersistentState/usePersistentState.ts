@@ -1,5 +1,6 @@
 import { ms, useDebounce } from "../useDebounce";
 import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from "react";
+import { deserialize, serialize } from "./utils";
 
 /**
  * Type representing a function that initializes state.
@@ -154,7 +155,7 @@ export function usePersistentState<T = unknown>(
     const handleSaveToStorage = useCallback((key: string, value: T) => {
         if(!isBrowser) return;
 
-        localStorage.setItem(key, JSON.stringify(value));
+        localStorage.setItem(key, serialize<T>(value));
     }, [key]);
 
     const debounce = useDebounce<[string, T]>(userConfig.saveDelay!, handleSaveToStorage);
@@ -165,7 +166,6 @@ export function usePersistentState<T = unknown>(
         if(event.data.storageData.key === key && event.data.storageData.value) {
             setState(event.data.storageData.value);
         }
-                    
     }, [key]);
 
     effectHook(() => {
@@ -173,8 +173,9 @@ export function usePersistentState<T = unknown>(
         
         try {
             const data = localStorage.getItem(key);
+            if(!data) throw new Error();
     
-            const parsedData = JSON.parse(data ?? "") as T;
+            const parsedData = deserialize<T>(data);
             
             setState(parsedData);
         } catch {
