@@ -506,7 +506,7 @@ export default ReadCounterComponent;
 
 ##### Reading an user-defined object value from persistent storage with a custom deserializer:
 
-// User.ts
+###### User.ts
 ```tsx
 class User {
   constructor(public name: string) {}
