@@ -509,7 +509,9 @@ export default ReadCounterComponent;
 ###### User.ts
 ```tsx
 class User {
-  constructor(public name: string) {}
+  constructor(public name: string) {
+    this.name = name;
+  }
 
   static serializerFn(user: User): string {
     return user.name;
