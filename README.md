@@ -225,42 +225,41 @@ export default DropdownComponent;
 
 ### `usePersistentState`
 
-`usePersistentState` is a custom hook that helps manage state and persists it in `localStorage`. It allows you to store and retrieve state values across sessions and tabs, with optional features like clearing the state when the component unmounts and delayed saving.
+`usePersistentState` is a custom hook that manages state and persists it in `localStorage`. It allows you to store and retrieve state values across sessions and tabs, with optional features like clearing the state when the component unmounts and delayed saving.
 
 #### Supported Data Types:
-1. **Primitive Types**
-2. **Object Types**
-3. **Special Object Types**
-    - BigInt
-    - RegExp
-    - Date
+1. **Primitive Types**: e.g., numbers, strings, booleans.
 
+2. **Object Types**: e.g., plain objects and arrays.
+
+3. **Special Object Types**:
+   - `Map`, `Set`, `Date`, `BigInt`, `RegExp`.
+
+4. **User-defined Types**: You can provide custom serialization and deserialization functions within config for complex types like classes or non-JSON-serializable objects.
 
 #### Key Features:
-1. **Persist storage state across windows/tabs**: The state is synced across multiple tabs and windows in real-time, so any updates in one tab are immediately reflected in others.
+1. **Persistent State Across Tabs**: Synchronize state across multiple browser windows or tabs in real-time.
 
-2. **Optimized state caching**: Once the state is fetched from `localStorage`, it is cached in memory. This ensures that subsequent reads access the cached state instead of fetching from `localStorage` again, improving performance.
+2. **Optimized Caching**: Once a state is fetched from `localStorage`, it is cached for improved performance on subsequent reads.
 
-3. **Efficient state updates**: The hook updates the state across windows/tabs in real-time but delays persisting the final value to `localStorage`. This reduces unnecessary writes, ensuring that only the final state is saved when updates stop.
+3. **Efficient State Updates**: Delayed saving of state reduces unnecessary writes to `localStorage`, which can improve performance when state changes rapidly.
 
-4. **Delayed saving with `saveDelay`**: The hook allows you to set a delay before saving the state to `localStorage`. This is useful for debouncing frequent state changes, such as during form input or rapid user interactions.
+4. **`saveDelay`**: Optional delay before saving the state to `localStorage`, useful for debouncing frequent state changes.
 
-5. **Automatic cleanup**: With the `clearStorageOnUnMount` option, you can configure the hook to remove the stored state when the component unmounts, preventing stale data from persisting across sessions.
+5. **Automatic Cleanup**: Option to automatically clear state from `localStorage` when the component unmounts using the `clearStorageOnUnMount` option.
 
-6. **Real-time synchronization across multiple components**: If multiple components use the same persistent state key, they will automatically share and sync the state in real-time, making it easier to manage shared state across different parts of your app.
+6. **Real-time Synchronization**: State updates are synchronized across all components and tabs in real-time when using the same key.
 
-7. **Supports both primitive and complex state types**: The hook can handle various state types, from simple values like numbers and strings to more complex objects and arrays.
+7. **Custom Serialization and Deserialization**: Provides flexibility to serialize and deserialize complex objects through custom functions.
 
-8. **Reduced re-rendering overhead**: The internal caching and optimized `setState` behavior help minimize unnecessary re-renders, improving overall app performance.
-
-9. **Safe state initialization**: You can pass an initial state or an initializer function, which is useful for dynamically initializing the state based on complex logic or asynchronous operations.
+8. **Reduced Re-renders**: Internal caching reduces re-renders by avoiding unnecessary reads from `localStorage`.
 
 #### Usage Scenarios:
-- **Cross-tab synchronization**: Ideal for scenarios where you need to keep state consistent across multiple tabs/windows, such as user preferences, session data, or shopping cart information.
+- **Cross-tab synchronization**: Ideal for state that needs to be consistent across multiple tabs or windows.
 
-- **Form auto-save**: Automatically persist form data in `localStorage` and sync it across tabs, ensuring that users don’t lose progress if they accidentally close a tab or window.
+- **Form auto-save**: Keep form data persistent across sessions or tabs.
 
-- **Improving app performance**: Caching state reduces frequent reads from `localStorage`, and the delayed save mechanism prevents excessive writes, making this hook perfect for high-traffic or complex applications.
+- **Optimizing performance**: Reduce frequent reads and writes to `localStorage` to enhance app performance.
 
 ---
 
@@ -270,20 +269,24 @@ export default DropdownComponent;
 const [state, setState] = usePersistentState<T>(
   key: string, 
   initialState: T | () => T, 
-  config?: { saveDelay?: number, clearStorageOnUnMount?: boolean, useLayout?: boolean }
+  config?: { saveDelay?: number, clearStorageOnUnMount?: boolean, useLayout?: boolean, serialize?: SerializerFn<T>, deserialize?: DeSerializerFn<T> }
 );
 ```
 
-- **`key`**: A unique string to identify the stored state in `localStorage`.
+- **`key`**: A unique identifier for the stored state in `localStorage`.
 
 - **`initialState`**: The initial state value or a function that returns the initial state.
 
 - **`config`**: Optional configuration object:
-  - **`saveDelay`**: (Default: `300ms`) Delay before saving the state to `localStorage` after a state update.
+  - **`saveDelay`**: (Default: `300ms`) The delay before saving the state to `localStorage` after a state update. Useful for debouncing rapid state changes.
   
-  - **`clearStorageOnUnMount`**: (Default: `false`) Boolean flag indicating whether to clear the state from storage when the component unmounts.
+  - **`clearStorageOnUnMount`**: (Default: `false`) Boolean flag indicating whether to clear the state from `localStorage` when the component unmounts.
   
-  - **`useLayout`**: (Default: `false`) If `true`, synchronizes state updates during the layout phase.
+  - **`useLayout`**: (Default: `false`) If `true`, synchronizes state updates during the layout phase to immediately reflect updates in the UI.
+  
+  - **`serialize`**: (Optional) Custom serialization function that converts state to a string before saving it to `localStorage`.
+  
+  - **`deserialize`**: (Optional) Custom deserialization function that parses the string from `localStorage` back into the original state.
 
 ---
 
@@ -376,45 +379,174 @@ export default LayoutComponent;
 
 ---
 
-### Key Notes:
-1. **Save Delay**: You can set the delay for saving state to `localStorage` using the `saveDelay` option. This is useful to debounce frequent state updates.
+#### Example with `serialize` and `deserialize` Functions
 
-2. **Clear on Unmount**: The `clearStorageOnUnMount` option will remove the stored state when the component unmounts, preventing stale state from lingering in `localStorage`.
+```tsx
+import { usePersistentState } from "@d3vtool/hooks";
 
-3. **Real-Time Syncing**: The state is automatically synced across tabs, providing real-time state management across your app, whether for user settings, session data, or shopping cart items.
+import React, { useMemo } from 'react';
+import { usePersistentState } from "@d3vtool/hooks";
+
+class Product {
+  public static selfInstance: Product | null = null;
+
+  constructor(public name: string, public price: number) {}
+
+  static serialize(product: Product): string {
+    return `${product.name},${product.price}`;
+  }
+
+  static deserialize(serialized: string): Product {
+    const [name, price] = serialized.split(',');
+    return new Product(name, parseFloat(price));
+  }
+
+  static create(name: string, price: number): Product {
+    if (Product.selfInstance === null) {
+      Product.selfInstance = new Product(name, price);
+    } else {
+      Product.selfInstance.name = name;
+      Product.selfInstance.price = price;
+    }
+    return Product.selfInstance;
+  }
+}
+// Or you can define this `config` inside your component
+// with useMemo hook in order to avoid re-creation on every re-render
+const config = {
+  serialize: Product.serialize,
+  deserialize: Product.deserialize
+}
+
+const ProductComponent: React.FC = () => {
+
+  // Initializing product using the create method to ensure the singleton pattern
+  const [product, setProduct] = usePersistentState("product", Product.create("Laptop", 1200), config);
+
+  function updatePrice() {
+    setProduct(Product.create("Laptop", 1500)); // Update price of the product
+  }
+
+  return (
+    <div>
+      <p>Product: {product.name}, Price: ${product.price}</p>
+      <button onClick={updatePrice}>Update Price</button>
+    </div>
+  );
+};
+
+export default ProductComponent;
+```
 
 ---
 
-### useReadPersistentState
+### Key Notes:
+1. **Save Delay**: The `saveDelay` option allows you to debounce rapid state updates before saving to `localStorage`. This reduces unnecessary writes when the state is changing frequently, such as in form inputs.
 
-`useReadPersistentState` is a custom hook that reads the persistent state from `localStorage` without providing the ability to update it across tabs.
+2. **Clear on Unmount**: Use `clearStorageOnUnMount` to remove the stored state when the component unmounts, which is helpful for preventing stale data from persisting across sessions.
+
+3. **Real-Time Syncing**: The state is automatically synced across all tabs and windows, providing real-time synchronization, which is ideal for managing state in applications with multiple browser tabs or windows.
+
+---
+
+### `useReadPersistentState`
+
+`useReadPersistentState` is a custom hook that reads the persistent state from `localStorage` without providing the ability to update it across windows or tabs. This hook supports deserializing the state value from `localStorage` using an optional custom deserialization function.
 
 #### API
 
 ```ts
-const state = useReadPersistentState<T>(key: string): T | undefined;
+const state = useReadPersistentState<T>(
+  key: string,
+  deserializerFn?: DeSerializerFn<T>
+): T | undefined;
 ```
 
-- `key`: A unique string to identify the stored state in `localStorage`.
-- Returns the state value if found in storage, or `undefined` if no value is found for the given key.
+- **`key`**: A unique string to identify the stored state in `localStorage`.
+
+- **`deserializerFn`**: (Optional) A custom function to deserialize the state value from `localStorage`. Defaults to a generic `deserialize` function.
+
+- **Returns**: The deserialized state value if found in storage, or `undefined` if no value is found for the given key.
 
 #### Example
+
+##### Reading a primitive type (number):
 
 ```tsx
 import { useReadPersistentState } from "@d3vtool/hooks";
 
 const ReadCounterComponent: React.FC = () => {
-    const state = useReadPersistentState<number>("counter");
+  const counter = useReadPersistentState<number>("counter");
 
-    return (
-        <div>
-            Read: {state}
-        </div>
-    );
+  return (
+    <div>
+      Read Counter: {counter}
+    </div>
+  );
 };
 
 export default ReadCounterComponent;
 ```
+
+##### Reading a Special type (BigInt):
+
+```tsx
+import { useReadPersistentState } from "@d3vtool/hooks";
+
+const ReadCounterComponent: React.FC = () => {
+  const counter = useReadPersistentState<BigInt>("counter");
+
+  return (
+    <div>
+      Read Counter: {counter}
+    </div>
+  );
+};
+
+export default ReadCounterComponent;
+```
+
+##### Reading an user-defined object value from persistent storage with a custom deserializer:
+
+// User.ts
+```tsx
+class User {
+  constructor(public name: string) {}
+
+  static serializerFn(user: User): string {
+    return user.name;
+  }
+
+  static deserializerFn(data: string): User {
+    return new User(data);
+  }
+}
+```
+
+
+```tsx
+import User from "./User.ts";
+
+const ReadUserComponent: React.FC = () => {
+  const userState = useReadPersistentState<User>('user', User.deserializerFn);
+
+  return (
+    <div>
+      User: {userState?.name}
+    </div>
+  );
+};
+
+export default ReadUserComponent;
+```
+
+#### Notes
+
+- `useReadPersistentState` allows reading data from `localStorage` but does not allow updating the state across windows or tabs.
+
+- Custom deserialization functions are helpful when dealing with unsupported types in `localStorage`, such as complex objects or types like `Date`, `Map`, `Set`, or custom classes.
+
+- If no deserialization function is passed, a default deserialization is applied to parse the stored value.
 
 ---
 
