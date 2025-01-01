@@ -544,7 +544,7 @@ export default ReadUserComponent;
 
 - `useReadPersistentState` allows reading data from `localStorage` but does not allow updating the state across windows or tabs.
 
-- Custom deserialization functions are helpful when dealing with unsupported types in `localStorage`, such as complex objects or types like `Date`, `Map`, `Set`, or custom classes.
+- Custom deserialization functions are helpful when dealing with unsupported types in `localStorage`, such as custom classes or non json-serializable object.
 
 - If no deserialization function is passed, a default deserialization is applied to parse the stored value.
 
