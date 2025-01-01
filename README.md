@@ -269,7 +269,13 @@ export default DropdownComponent;
 const [state, setState] = usePersistentState<T>(
   key: string, 
   initialState: T | () => T, 
-  config?: { saveDelay?: number, clearStorageOnUnMount?: boolean, useLayout?: boolean, serialize?: SerializerFn<T>, deserialize?: DeSerializerFn<T> }
+  config?: {
+    saveDelay?: number, 
+    clearStorageOnUnMount?: boolean, 
+    useLayout?: boolean, 
+    serialize?: SerializerFn<T>, 
+    deserialize?: DeSerializerFn<T>
+  }
 );
 ```
 
