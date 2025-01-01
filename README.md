@@ -382,9 +382,7 @@ export default LayoutComponent;
 #### Example with `serialize` and `deserialize` Functions
 
 ```tsx
-import { usePersistentState } from "@d3vtool/hooks";
-
-import React, { useMemo } from 'react';
+import React from 'react';
 import { usePersistentState } from "@d3vtool/hooks";
 
 class Product {
