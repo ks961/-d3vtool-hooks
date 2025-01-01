@@ -388,7 +388,10 @@ import { usePersistentState } from "@d3vtool/hooks";
 class Product {
   public static selfInstance: Product | null = null;
 
-  constructor(public name: string, public price: number) {}
+  constructor(public name: string, public price: number) {
+    this.name = name;
+    this.price = price;
+  }
 
   static serialize(product: Product): string {
     return `${product.name},${product.price}`;
