@@ -288,7 +288,7 @@ const [state, setState] = usePersistentState<T>(
   
   - **`clearStorageOnUnMount`**: (Default: `false`) Boolean flag indicating whether to clear the state from `localStorage` when the component unmounts.
   
-  - **`useLayout`**: (Default: `false`) If `true`, synchronizes state updates during the layout phase to immediately reflect updates in the UI.
+  - **`useLayout`**: (Default: `false`) If `true`, synchronizes state ( uses useLayoutEffect ) updates during the layout phase to immediately reflect updates in the UI.
   
   - **`serialize`**: (Optional) Custom serialization function that converts state to a string before saving it to `localStorage`.
   
